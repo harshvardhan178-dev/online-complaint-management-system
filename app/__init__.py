@@ -37,6 +37,52 @@ def create_app(config_class=Config):
     app.register_blueprint(admin_bp)
     app.register_blueprint(staff_bp)
 
+    # Health check probe for Render, Kubernetes, and load balancers
+    @app.route('/health')
+    def health_check():
+        try:
+            db.session.execute(db.text('SELECT 1'))
+            db_status = 'connected'
+        except Exception as e:
+            return {
+                'status': 'unhealthy',
+                'database': f'error: {str(e)}',
+                'service': 'SmartComplaint'
+            }, 500
+
+        return {
+            'status': 'healthy',
+            'service': 'SmartComplaint',
+            'version': '2.0.0',
+            'database': db_status,
+            'environment': app.config.get('FLASK_ENV', 'production')
+        }, 200
+
+    # Production Security Response Headers
+    @app.after_request
+    def set_security_headers(response):
+        response.headers['X-Content-Type-Options'] = 'nosniff'
+        response.headers['X-Frame-Options'] = 'SAMEORIGIN'
+        response.headers['X-XSS-Protection'] = '1; mode=block'
+        return response
+
+    # Custom Branded Error Handlers
+    @app.errorhandler(404)
+    def not_found_error(error):
+        from flask import render_template
+        return render_template('errors/404.html'), 404
+
+    @app.errorhandler(403)
+    def forbidden_error(error):
+        from flask import render_template
+        return render_template('errors/403.html'), 403
+
+    @app.errorhandler(500)
+    def internal_error(error):
+        from flask import render_template
+        db.session.rollback()
+        return render_template('errors/500.html'), 500
+
     # Global context processor for notifications & layout helpers
     @app.context_processor
     def inject_global_vars():

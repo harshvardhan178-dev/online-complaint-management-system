@@ -58,13 +58,17 @@ def complaints():
             (Complaint.description.ilike(pattern))
         )
 
-    complaints_list = query.order_by(Complaint.created_at.desc()).all()
+    page = request.args.get('page', 1, type=int)
+    per_page = 10
+    pagination = query.order_by(Complaint.created_at.desc()).paginate(page=page, per_page=per_page, error_out=False)
+    complaints_list = pagination.items
     departments = Department.query.order_by(Department.name).all()
     staff_members = User.query.filter_by(role='staff', is_active=True).all()
 
     return render_template(
         'admin/complaints.html',
         complaints=complaints_list,
+        pagination=pagination,
         departments=departments,
         staff_members=staff_members,
         selected_status=status,

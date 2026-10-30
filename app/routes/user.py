@@ -161,12 +161,16 @@ def complaint_history():
             (Complaint.description.ilike(search_pattern))
         )
 
-    complaints = query.order_by(Complaint.created_at.desc()).all()
+    page = request.args.get('page', 1, type=int)
+    per_page = 8
+    pagination = query.order_by(Complaint.created_at.desc()).paginate(page=page, per_page=per_page, error_out=False)
+    complaints = pagination.items
     categories = ['IT & Software', 'Hostel & Facilities', 'Finance & Billing', 'Administration', 'Academics', 'Infrastructure', 'General']
 
     return render_template(
         'user/complaint_history.html',
         complaints=complaints,
+        pagination=pagination,
         status_filter=status_filter,
         category_filter=category_filter,
         priority_filter=priority_filter,
