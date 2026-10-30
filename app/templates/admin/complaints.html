@@ -1,0 +1,226 @@
+{% extends 'base.html' %}
+
+{% block title %}Manage All Complaints{% endblock %}
+{% block header_title %}All Complaints Management{% endblock %}
+
+{% block content %}
+<!-- Advanced Filter Bar -->
+<div class="card" style="margin-bottom: 24px;">
+    <div class="card-body">
+        <form action="{{ url_for('admin.complaints') }}" method="GET" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)) 100px; gap: 14px; align-items: end;">
+            <div class="form-group" style="margin-bottom: 0;">
+                <label class="form-label" style="font-size: 0.8rem;">Search</label>
+                <input type="text" name="search" class="form-control" placeholder="Search..." value="{{ search }}">
+            </div>
+
+            <div class="form-group" style="margin-bottom: 0;">
+                <label class="form-label" style="font-size: 0.8rem;">Status</label>
+                <select name="status" class="form-select">
+                    <option value="">All Statuses</option>
+                    <option value="Submitted" {% if selected_status == 'Submitted' %}selected{% endif %}>Submitted</option>
+                    <option value="Under Review" {% if selected_status == 'Under Review' %}selected{% endif %}>Under Review</option>
+                    <option value="Assigned" {% if selected_status == 'Assigned' %}selected{% endif %}>Assigned</option>
+                    <option value="In Progress" {% if selected_status == 'In Progress' %}selected{% endif %}>In Progress</option>
+                    <option value="Resolved" {% if selected_status == 'Resolved' %}selected{% endif %}>Resolved</option>
+                    <option value="Rejected" {% if selected_status == 'Rejected' %}selected{% endif %}>Rejected</option>
+                </select>
+            </div>
+
+            <div class="form-group" style="margin-bottom: 0;">
+                <label class="form-label" style="font-size: 0.8rem;">Department</label>
+                <select name="department_id" class="form-select">
+                    <option value="">All Departments</option>
+                    {% for d in departments %}
+                        <option value="{{ d.id }}" {% if selected_dept == d.id %}selected{% endif %}>{{ d.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div class="form-group" style="margin-bottom: 0;">
+                <label class="form-label" style="font-size: 0.8rem;">Priority</label>
+                <select name="priority" class="form-select">
+                    <option value="">All Priorities</option>
+                    <option value="Low" {% if selected_priority == 'Low' %}selected{% endif %}>Low</option>
+                    <option value="Medium" {% if selected_priority == 'Medium' %}selected{% endif %}>Medium</option>
+                    <option value="High" {% if selected_priority == 'High' %}selected{% endif %}>High</option>
+                    <option value="Critical" {% if selected_priority == 'Critical' %}selected{% endif %}>Critical</option>
+                </select>
+            </div>
+
+            <button type="submit" class="btn btn-primary" style="justify-content: center;">
+                <i class="fa-solid fa-filter"></i> Apply
+            </button>
+        </form>
+    </div>
+</div>
+
+<!-- Complaints Table -->
+<div class="card">
+    <div class="card-header">
+        <h2 class="card-title"><i class="fa-solid fa-list-check"></i> Complaints ({{ complaints|length }})</h2>
+        <div style="display: flex; gap: 8px;">
+            {% if search or selected_status or selected_dept or selected_priority %}
+                <a href="{{ url_for('admin.complaints') }}" class="btn btn-outline btn-sm">Reset Filters</a>
+            {% endif %}
+            <a href="{{ url_for('admin.reports') }}" class="btn btn-outline btn-sm">
+                <i class="fa-solid fa-file-export"></i> Export
+            </a>
+        </div>
+    </div>
+    <div class="card-body" style="padding: 0;">
+        {% if complaints %}
+            <div class="table-responsive">
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>Complaint ID</th>
+                            <th>Title & Description</th>
+                            <th>Submitter</th>
+                            <th>Priority</th>
+                            <th>Department</th>
+                            <th>Assigned Staff</th>
+                            <th>Status</th>
+                            <th>Date</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for c in complaints %}
+                            <tr>
+                                <td>
+                                    <a href="{{ url_for('user.track_complaint', complaint_id=c.complaint_id) }}" style="font-weight: 600;">
+                                        #{{ c.complaint_id }}
+                                    </a>
+                                </td>
+                                <td>
+                                    <div style="font-weight: 600; color: #1e293b;">{{ c.title }}</div>
+                                    <div style="font-size: 0.82rem; color: #64748b; max-width: 260px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+                                        {{ c.description }}
+                                    </div>
+                                </td>
+                                <td>
+                                    <div style="font-weight: 500;">{{ c.submitter.full_name if c.submitter else 'Unknown' }}</div>
+                                    <div style="font-size: 0.78rem; color: #64748b;">{{ c.submitter.email if c.submitter else '' }}</div>
+                                </td>
+                                <td><span class="{{ c.priority_badge_class }}">{{ c.priority }}</span></td>
+                                <td>{{ c.department.name if c.department else '—' }}</td>
+                                <td>{{ c.assignee.full_name if c.assignee else 'Unassigned' }}</td>
+                                <td><span class="badge {{ c.status_badge_class }}">{{ c.status }}</span></td>
+                                <td style="font-size: 0.82rem; color: #64748b;">{{ c.created_at.strftime('%Y-%m-%d') }}</td>
+                                <td>
+                                    <div style="display: flex; gap: 4px;">
+                                        <button class="btn btn-outline btn-sm" data-modal-target="modal-assign-{{ c.id }}" title="Assign">
+                                            <i class="fa-solid fa-user-plus"></i>
+                                        </button>
+                                        <button class="btn btn-outline btn-sm" data-modal-target="modal-status-{{ c.id }}" title="Change Status">
+                                            <i class="fa-solid fa-pen-to-square"></i>
+                                        </button>
+                                        <a href="{{ url_for('user.track_complaint', complaint_id=c.complaint_id) }}" class="btn btn-outline btn-sm" title="View Details">
+                                            <i class="fa-solid fa-eye"></i>
+                                        </a>
+                                    </div>
+
+                                    <!-- Assign Modal -->
+                                    <div id="modal-assign-{{ c.id }}" class="modal-overlay">
+                                        <div class="modal-dialog">
+                                            <div class="modal-header">
+                                                <h3 style="font-size: 1.1rem; font-weight: 600;">Assign Complaint #{{ c.complaint_id }}</h3>
+                                                <button type="button" class="modal-close">&times;</button>
+                                            </div>
+                                            <form action="{{ url_for('admin.assign', complaint_id=c.id) }}" method="POST">
+                                                <div class="modal-body">
+                                                    <div class="form-group">
+                                                        <label class="form-label">Department</label>
+                                                        <select name="department_id" class="form-select">
+                                                            <option value="">Select Department</option>
+                                                            {% for d in departments %}
+                                                                <option value="{{ d.id }}" {% if c.department_id == d.id %}selected{% endif %}>{{ d.name }}</option>
+                                                            {% endfor %}
+                                                        </select>
+                                                    </div>
+                                                    <div class="form-group">
+                                                        <label class="form-label">Staff Member</label>
+                                                        <select name="staff_id" class="form-select">
+                                                            <option value="">Unassigned</option>
+                                                            {% for s in staff_members %}
+                                                                <option value="{{ s.id }}" {% if c.assigned_to == s.id %}selected{% endif %}>
+                                                                    {{ s.full_name }} ({{ s.department.name if s.department else 'General' }})
+                                                                </option>
+                                                            {% endfor %}
+                                                        </select>
+                                                    </div>
+                                                    <div class="form-group">
+                                                        <label class="form-label">Note for Assignee</label>
+                                                        <textarea name="note" rows="2" class="form-control" placeholder="Internal instructions..."></textarea>
+                                                    </div>
+                                                </div>
+                                                <div class="modal-footer">
+                                                    <button type="button" class="btn btn-secondary modal-close">Cancel</button>
+                                                    <button type="submit" class="btn btn-primary">Save Assignment</button>
+                                                </div>
+                                            </form>
+                                        </div>
+                                    </div>
+
+                                    <!-- Status Modal -->
+                                    <div id="modal-status-{{ c.id }}" class="modal-overlay">
+                                        <div class="modal-dialog">
+                                            <div class="modal-header">
+                                                <h3 style="font-size: 1.1rem; font-weight: 600;">Update Status #{{ c.complaint_id }}</h3>
+                                                <button type="button" class="modal-close">&times;</button>
+                                            </div>
+                                            <form action="{{ url_for('admin.change_status', complaint_id=c.id) }}" method="POST">
+                                                <div class="modal-body">
+                                                    <div class="form-group">
+                                                        <label class="form-label">New Status</label>
+                                                        <select name="status" class="form-select" onchange="toggleRejection(this, 'reject-box-{{ c.id }}')">
+                                                            <option value="Submitted" {% if c.status == 'Submitted' %}selected{% endif %}>Submitted</option>
+                                                            <option value="Under Review" {% if c.status == 'Under Review' %}selected{% endif %}>Under Review</option>
+                                                            <option value="Assigned" {% if c.status == 'Assigned' %}selected{% endif %}>Assigned</option>
+                                                            <option value="In Progress" {% if c.status == 'In Progress' %}selected{% endif %}>In Progress</option>
+                                                            <option value="Resolved" {% if c.status == 'Resolved' %}selected{% endif %}>Resolved</option>
+                                                            <option value="Rejected" {% if c.status == 'Rejected' %}selected{% endif %}>Rejected</option>
+                                                        </select>
+                                                    </div>
+                                                    <div class="form-group" id="reject-box-{{ c.id }}" style="display: {% if c.status == 'Rejected' %}block{% else %}none{% endif %};">
+                                                        <label class="form-label">Reason for Rejection</label>
+                                                        <textarea name="rejection_reason" rows="2" class="form-control" placeholder="Explain rejection rationale...">{{ c.rejection_reason or '' }}</textarea>
+                                                    </div>
+                                                    <div class="form-group">
+                                                        <label class="form-label">Timeline Note</label>
+                                                        <textarea name="note" rows="2" class="form-control" placeholder="Note added to public timeline..."></textarea>
+                                                    </div>
+                                                </div>
+                                                <div class="modal-footer">
+                                                    <button type="button" class="btn btn-secondary modal-close">Cancel</button>
+                                                    <button type="submit" class="btn btn-primary">Update Status</button>
+                                                </div>
+                                            </form>
+                                        </div>
+                                    </div>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        {% else %}
+            <div style="text-align: center; padding: 40px; color: #64748b;">
+                No complaints found matching the criteria.
+            </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+    function toggleRejection(selectElem, boxId) {
+        const box = document.getElementById(boxId);
+        if (box) {
+            box.style.display = selectElem.value === 'Rejected' ? 'block' : 'none';
+        }
+    }
+</script>
+{% endblock %}
+

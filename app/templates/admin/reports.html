@@ -1,0 +1,86 @@
+{% extends 'base.html' %}
+
+{% block title %}Reports & Export{% endblock %}
+{% block header_title %}Reports & Data Export{% endblock %}
+
+{% block content %}
+<div style="max-width: 800px; margin: 0 auto;">
+    <div class="card">
+        <div class="card-header">
+            <h2 class="card-title"><i class="fa-solid fa-file-export"></i> Export Complaint Records</h2>
+        </div>
+        <div class="card-body">
+            <p style="color: #64748b; font-size: 0.95rem; margin-bottom: 24px;">
+                Filter complaint records and export comprehensive operational data for audits, management presentations, or offline tracking.
+            </p>
+
+            <form id="report-form" method="GET">
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 18px; margin-bottom: 20px;">
+                    <div class="form-group">
+                        <label class="form-label">Status Filter</label>
+                        <select name="status" class="form-select">
+                            <option value="">All Statuses</option>
+                            <option value="Submitted">Submitted</option>
+                            <option value="Under Review">Under Review</option>
+                            <option value="Assigned">Assigned</option>
+                            <option value="In Progress">In Progress</option>
+                            <option value="Resolved">Resolved</option>
+                            <option value="Rejected">Rejected</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Category Filter</label>
+                        <select name="category" class="form-select">
+                            <option value="">All Categories</option>
+                            <option value="IT & Software">IT & Software</option>
+                            <option value="Hostel & Facilities">Hostel & Facilities</option>
+                            <option value="Finance & Billing">Finance & Billing</option>
+                            <option value="Administration">Administration</option>
+                            <option value="Academics">Academics</option>
+                            <option value="Infrastructure">Infrastructure</option>
+                            <option value="General">General</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="form-group" style="margin-bottom: 30px;">
+                    <label class="form-label">Department Filter</label>
+                    <select name="department_id" class="form-select">
+                        <option value="">All Departments</option>
+                        {% for d in departments %}
+                            <option value="{{ d.id }}">{{ d.name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div style="display: flex; gap: 16px;">
+                    <button type="button" class="btn btn-primary" onclick="exportReport('csv')" style="flex: 1; justify-content: center; padding: 12px;">
+                        <i class="fa-solid fa-file-csv"></i> Download CSV Spreadsheet
+                    </button>
+                    <button type="button" class="btn btn-danger" onclick="exportReport('pdf')" style="flex: 1; justify-content: center; padding: 12px;">
+                        <i class="fa-solid fa-file-pdf"></i> Download PDF Document
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+    function exportReport(format) {
+        const form = document.getElementById('report-form');
+        const formData = new FormData(form);
+        const params = new URLSearchParams(formData).toString();
+        
+        if (format === 'csv') {
+            window.location.href = `{{ url_for('admin.export_csv') }}?` + params;
+        } else {
+            window.location.href = `{{ url_for('admin.export_pdf') }}?` + params;
+        }
+    }
+</script>
+{% endblock %}
+

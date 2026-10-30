@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}SmartComplaint{% endblock %} — Complaint Management System</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    {% block extra_head %}{% endblock %}
+</head>
+<body>
+    <div class="app-container">
+        <!-- Sidebar Navigation -->
+        <aside class="sidebar">
+            <div class="sidebar-brand">
+                <div class="brand-icon">
+                    <i class="fa-solid fa-shield-halved"></i>
+                </div>
+                <span>SmartComplaint</span>
+            </div>
+
+            <ul class="sidebar-menu">
+                {% if session.get('user_role') == 'admin' %}
+                    <li class="menu-section">Administration</li>
+                    <li class="menu-item">
+                        <a href="{{ url_for('admin.dashboard') }}" class="menu-link {% if request.endpoint == 'admin.dashboard' %}active{% endif %}">
+                            <i class="fa-solid fa-gauge-high"></i>
+                            <span>Admin Overview</span>
+                        </a>
+                    </li>
+                    <li class="menu-item">
+                        <a href="{{ url_for('admin.complaints') }}" class="menu-link {% if request.endpoint == 'admin.complaints' %}active{% endif %}">
+                            <i class="fa-solid fa-list-check"></i>
+                            <span>Manage Complaints</span>
+                        </a>
+                    </li>
+                    <li class="menu-item">
+                        <a href="{{ url_for('admin.users') }}" class="menu-link {% if request.endpoint == 'admin.users' %}active{% endif %}">
+                            <i class="fa-solid fa-users-gear"></i>
+                            <span>Users & Departments</span>
+                        </a>
+                    </li>
+                    <li class="menu-item">
+                        <a href="{{ url_for('admin.reports') }}" class="menu-link {% if request.endpoint == 'admin.reports' %}active{% endif %}">
+                            <i class="fa-solid fa-file-export"></i>
+                            <span>Reports & Exports</span>
+                        </a>
+                    </li>
+                    <li class="menu-item">
+                        <a href="{{ url_for('admin.analytics') }}" class="menu-link {% if request.endpoint == 'admin.analytics' %}active{% endif %}">
+                            <i class="fa-solid fa-chart-pie"></i>
+                            <span>Analytics & Trends</span>
+                        </a>
+                    </li>
+                {% elif session.get('user_role') == 'staff' %}
+                    <li class="menu-section">Staff Portal</li>
+                    <li class="menu-item">
+                        <a href="{{ url_for('staff.dashboard') }}" class="menu-link {% if request.endpoint == 'staff.dashboard' %}active{% endif %}">
+                            <i class="fa-solid fa-inbox"></i>
+                            <span>Assigned Tasks</span>
+                        </a>
+                    </li>
+                {% else %}
+                    <li class="menu-section">User Portal</li>
+                    <li class="menu-item">
+                        <a href="{{ url_for('user.dashboard') }}" class="menu-link {% if request.endpoint == 'user.dashboard' %}active{% endif %}">
+                            <i class="fa-solid fa-house"></i>
+                            <span>Dashboard</span>
+                        </a>
+                    </li>
+                    <li class="menu-item">
+                        <a href="{{ url_for('user.submit_complaint') }}" class="menu-link {% if request.endpoint == 'user.submit_complaint' %}active{% endif %}">
+                            <i class="fa-solid fa-circle-plus"></i>
+                            <span>File Complaint</span>
+                        </a>
+                    </li>
+                    <li class="menu-item">
+                        <a href="{{ url_for('user.track_complaint') }}" class="menu-link {% if request.endpoint == 'user.track_complaint' %}active{% endif %}">
+                            <i class="fa-solid fa-magnifying-glass-location"></i>
+                            <span>Track Status</span>
+                        </a>
+                    </li>
+                    <li class="menu-item">
+                        <a href="{{ url_for('user.complaint_history') }}" class="menu-link {% if request.endpoint == 'user.complaint_history' %}active{% endif %}">
+                            <i class="fa-solid fa-clock-rotate-left"></i>
+                            <span>My History</span>
+                        </a>
+                    </li>
+                    <li class="menu-item">
+                        <a href="{{ url_for('user.notifications') }}" class="menu-link {% if request.endpoint == 'user.notifications' %}active{% endif %}">
+                            <i class="fa-solid fa-bell"></i>
+                            <span>Notifications</span>
+                            {% if unread_notifications_count > 0 %}
+                                <span class="menu-badge">{{ unread_notifications_count }}</span>
+                            {% endif %}
+                        </a>
+                    </li>
+                {% endif %}
+            </ul>
+
+            <div class="sidebar-footer">
+                <div class="user-snippet">
+                    <div class="user-avatar">
+                        {{ session.get('user_name', 'U')[0]|upper }}
+                    </div>
+                    <div style="overflow: hidden;">
+                        <div style="font-weight: 600; text-overflow: ellipsis; white-space: nowrap; overflow: hidden;">
+                            {{ session.get('user_name', 'User') }}
+                        </div>
+                        <div style="font-size: 0.75rem; color: #94a3b8; text-transform: uppercase;">
+                            {{ session.get('user_role', 'user') }}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Main Workspace -->
+        <div class="main-wrapper">
+            <header class="top-navbar">
+                <div style="display: flex; align-items: center; gap: 15px;">
+                    <button id="sidebar-toggle" class="btn btn-outline btn-sm" style="display: none;" aria-label="Toggle Menu">
+                        <i class="fa-solid fa-bars"></i>
+                    </button>
+                    <h1 class="page-title">{% block header_title %}Overview{% endblock %}</h1>
+                </div>
+
+                <div class="top-actions">
+                    {% if session.get('user_role') == 'user' %}
+                        <a href="{{ url_for('user.submit_complaint') }}" class="btn btn-primary btn-sm">
+                            <i class="fa-solid fa-plus"></i> Submit Complaint
+                        </a>
+                        <a href="{{ url_for('user.notifications') }}" class="btn btn-outline btn-sm" title="Notifications" style="position: relative;">
+                            <i class="fa-solid fa-bell"></i>
+                            {% if unread_notifications_count > 0 %}
+                                <span style="position: absolute; top: -5px; right: -5px; background: #ef4444; color: white; border-radius: 50%; width: 18px; height: 18px; font-size: 10px; display: flex; align-items: center; justify-content: center; font-weight: bold;">
+                                    {{ unread_notifications_count }}
+                                </span>
+                            {% endif %}
+                        </a>
+                    {% endif %}
+                    
+                    <a href="{{ url_for('auth.logout') }}" class="btn btn-secondary btn-sm" title="Log Out">
+                        <i class="fa-solid fa-arrow-right-from-bracket"></i> Logout
+                    </a>
+                </div>
+            </header>
+
+            <main class="content-body">
+                <!-- Flash messages -->
+                {% with messages = get_flashed_messages(with_categories=true) %}
+                    {% if messages %}
+                        {% for category, message in messages %}
+                            <div class="alert alert-{{ category }}">
+                                <span>{{ message }}</span>
+                                <button type="button" class="alert-close" onclick="this.parentElement.remove()">&times;</button>
+                            </div>
+                        {% endfor %}
+                    {% endif %}
+                {% endwith %}
+
+                {% block content %}{% endblock %}
+            </main>
+        </div>
+    </div>
+
+    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/dashboard.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/charts.js') }}"></script>
+    {% block extra_scripts %}{% endblock %}
+</body>
+</html>
+

@@ -1,0 +1,142 @@
+{% extends 'base.html' %}
+
+{% block title %}Staff Assigned Tasks{% endblock %}
+{% block header_title %}Staff Portal — My Tasks{% endblock %}
+
+{% block content %}
+<!-- Staff Stat Cards -->
+<div class="grid-cards">
+    <div class="stat-card">
+        <div class="stat-header">
+            <span>Total Assigned Tasks</span>
+            <div class="stat-icon" style="background: #eff6ff; color: #2563eb;">
+                <i class="fa-solid fa-list-check"></i>
+            </div>
+        </div>
+        <div class="stat-value">{{ stats.total }}</div>
+    </div>
+
+    <div class="stat-card">
+        <div class="stat-header">
+            <span>Newly Assigned</span>
+            <div class="stat-icon" style="background: #ecfeff; color: #06b6d4;">
+                <i class="fa-solid fa-inbox"></i>
+            </div>
+        </div>
+        <div class="stat-value">{{ stats.assigned }}</div>
+    </div>
+
+    <div class="stat-card">
+        <div class="stat-header">
+            <span>In Progress</span>
+            <div class="stat-icon" style="background: #f3e8ff; color: #8b5cf6;">
+                <i class="fa-solid fa-person-digging"></i>
+            </div>
+        </div>
+        <div class="stat-value">{{ stats.in_progress }}</div>
+    </div>
+
+    <div class="stat-card">
+        <div class="stat-header">
+            <span>Resolved by Me</span>
+            <div class="stat-icon" style="background: #ecfdf5; color: #10b981;">
+                <i class="fa-solid fa-clipboard-check"></i>
+            </div>
+        </div>
+        <div class="stat-value">{{ stats.resolved }}</div>
+    </div>
+</div>
+
+<!-- Filters -->
+<div class="card" style="margin-bottom: 24px;">
+    <div class="card-body">
+        <form action="{{ url_for('staff.dashboard') }}" method="GET" style="display: flex; gap: 14px; align-items: end;">
+            <div class="form-group" style="margin-bottom: 0; min-width: 180px;">
+                <label class="form-label" style="font-size: 0.8rem;">Status</label>
+                <select name="status" class="form-select">
+                    <option value="">All Tasks</option>
+                    <option value="Assigned" {% if status_filter == 'Assigned' %}selected{% endif %}>Assigned</option>
+                    <option value="In Progress" {% if status_filter == 'In Progress' %}selected{% endif %}>In Progress</option>
+                    <option value="Resolved" {% if status_filter == 'Resolved' %}selected{% endif %}>Resolved</option>
+                </select>
+            </div>
+
+            <div class="form-group" style="margin-bottom: 0; min-width: 180px;">
+                <label class="form-label" style="font-size: 0.8rem;">Priority</label>
+                <select name="priority" class="form-select">
+                    <option value="">All Priorities</option>
+                    <option value="Low" {% if priority_filter == 'Low' %}selected{% endif %}>Low</option>
+                    <option value="Medium" {% if priority_filter == 'Medium' %}selected{% endif %}>Medium</option>
+                    <option value="High" {% if priority_filter == 'High' %}selected{% endif %}>High</option>
+                    <option value="Critical" {% if priority_filter == 'Critical' %}selected{% endif %}>Critical</option>
+                </select>
+            </div>
+
+            <button type="submit" class="btn btn-primary">
+                <i class="fa-solid fa-filter"></i> Filter
+            </button>
+            {% if status_filter or priority_filter %}
+                <a href="{{ url_for('staff.dashboard') }}" class="btn btn-outline">Reset</a>
+            {% endif %}
+        </form>
+    </div>
+</div>
+
+<!-- Assigned Complaints List -->
+<div class="card">
+    <div class="card-header">
+        <h2 class="card-title"><i class="fa-solid fa-tasks"></i> Assigned Complaints ({{ complaints|length }})</h2>
+    </div>
+    <div class="card-body" style="padding: 0;">
+        {% if complaints %}
+            <div class="table-responsive">
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>Complaint ID</th>
+                            <th>Title</th>
+                            <th>Category</th>
+                            <th>Priority</th>
+                            <th>Status</th>
+                            <th>Assigned Date</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for c in complaints %}
+                            <tr>
+                                <td>
+                                    <a href="{{ url_for('staff.complaint_detail', complaint_id=c.id) }}" style="font-weight: 600;">
+                                        #{{ c.complaint_id }}
+                                    </a>
+                                </td>
+                                <td>
+                                    <div style="font-weight: 600; color: #1e293b;">{{ c.title }}</div>
+                                    <div style="font-size: 0.8rem; color: #64748b; max-width: 250px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+                                        {{ c.description }}
+                                    </div>
+                                </td>
+                                <td><span class="badge badge-light">{{ c.category }}</span></td>
+                                <td><span class="{{ c.priority_badge_class }}">{{ c.priority }}</span></td>
+                                <td><span class="badge {{ c.status_badge_class }}">{{ c.status }}</span></td>
+                                <td style="font-size: 0.82rem; color: #64748b;">{{ c.created_at.strftime('%Y-%m-%d') }}</td>
+                                <td>
+                                    <a href="{{ url_for('staff.complaint_detail', complaint_id=c.id) }}" class="btn btn-primary btn-sm">
+                                        <i class="fa-solid fa-pen-to-square"></i> Process
+                                    </a>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        {% else %}
+            <div style="text-align: center; padding: 40px; color: #64748b;">
+                <i class="fa-solid fa-circle-check" style="font-size: 2.5rem; color: #10b981; margin-bottom: 12px;"></i>
+                <p>No pending complaints assigned to you right now. Great job!</p>
+            </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
+

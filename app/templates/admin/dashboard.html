@@ -1,0 +1,251 @@
+{% extends 'base.html' %}
+
+{% block title %}Administrator Dashboard{% endblock %}
+{% block header_title %}Administrator Dashboard{% endblock %}
+
+{% block content %}
+<!-- KPI Stats Cards -->
+<div class="grid-cards">
+    <div class="stat-card">
+        <div class="stat-header">
+            <span>Total Complaints</span>
+            <div class="stat-icon" style="background: #eff6ff; color: #2563eb;">
+                <i class="fa-solid fa-folder"></i>
+            </div>
+        </div>
+        <div class="stat-value">{{ analytics.total }}</div>
+    </div>
+
+    <div class="stat-card">
+        <div class="stat-header">
+            <span>Pending Review</span>
+            <div class="stat-icon" style="background: #fffbeb; color: #f59e0b;">
+                <i class="fa-solid fa-hourglass-half"></i>
+            </div>
+        </div>
+        <div class="stat-value">{{ analytics.pending }}</div>
+    </div>
+
+    <div class="stat-card">
+        <div class="stat-header">
+            <span>Active / In Progress</span>
+            <div class="stat-icon" style="background: #f3e8ff; color: #8b5cf6;">
+                <i class="fa-solid fa-gear fa-spin"></i>
+            </div>
+        </div>
+        <div class="stat-value">{{ analytics.in_progress }}</div>
+    </div>
+
+    <div class="stat-card">
+        <div class="stat-header">
+            <span>Resolution Rate</span>
+            <div class="stat-icon" style="background: #ecfdf5; color: #10b981;">
+                <i class="fa-solid fa-circle-check"></i>
+            </div>
+        </div>
+        <div class="stat-value">{{ analytics.resolution_rate }}%</div>
+    </div>
+
+    <div class="stat-card">
+        <div class="stat-header">
+            <span>Registered Users</span>
+            <div class="stat-icon" style="background: #f8fafc; color: #475569;">
+                <i class="fa-solid fa-users"></i>
+            </div>
+        </div>
+        <div class="stat-value">{{ total_users }}</div>
+    </div>
+
+    <div class="stat-card">
+        <div class="stat-header">
+            <span>Avg Satisfaction</span>
+            <div class="stat-icon" style="background: #fefce8; color: #eab308;">
+                <i class="fa-solid fa-star"></i>
+            </div>
+        </div>
+        <div class="stat-value">{{ analytics.avg_rating }} <span style="font-size: 1rem; color: #94a3b8;">/ 5</span></div>
+    </div>
+</div>
+
+<!-- Charts Overview Row -->
+<div style="display: grid; grid-template-columns: 1fr 2fr; gap: 24px; margin-bottom: 28px;">
+    <div class="card">
+        <div class="card-header">
+            <h2 class="card-title"><i class="fa-solid fa-chart-pie"></i> Status Breakdown</h2>
+        </div>
+        <div class="card-body" style="height: 260px; position: relative;">
+            <canvas id="statusChart"></canvas>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-header">
+            <h2 class="card-title"><i class="fa-solid fa-chart-line"></i> Submissions Trend (Last 6 Months)</h2>
+        </div>
+        <div class="card-body" style="height: 260px; position: relative;">
+            <canvas id="trendChart"></canvas>
+        </div>
+    </div>
+</div>
+
+<!-- Recent Complaints Section -->
+<div class="card">
+    <div class="card-header">
+        <h2 class="card-title"><i class="fa-solid fa-clock"></i> Recent Submissions Requiring Attention</h2>
+        <a href="{{ url_for('admin.complaints') }}" class="btn btn-outline btn-sm">View All Complaints</a>
+    </div>
+    <div class="card-body" style="padding: 0;">
+        {% if recent_complaints %}
+            <div class="table-responsive">
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Title</th>
+                            <th>Submitter</th>
+                            <th>Category</th>
+                            <th>Priority</th>
+                            <th>Status</th>
+                            <th>Assigned To</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for c in recent_complaints %}
+                            <tr>
+                                <td>
+                                    <a href="{{ url_for('user.track_complaint', complaint_id=c.complaint_id) }}" style="font-weight: 600;">
+                                        #{{ c.complaint_id }}
+                                    </a>
+                                </td>
+                                <td>
+                                    <div style="font-weight: 500; max-width: 180px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" title="{{ c.title }}">
+                                        {{ c.title }}
+                                    </div>
+                                </td>
+                                <td>{{ c.submitter.full_name if c.submitter else 'Unknown' }}</td>
+                                <td><span class="badge badge-light">{{ c.category }}</span></td>
+                                <td><span class="{{ c.priority_badge_class }}">{{ c.priority }}</span></td>
+                                <td><span class="badge {{ c.status_badge_class }}">{{ c.status }}</span></td>
+                                <td>
+                                    <span style="font-size: 0.85rem; color: #475569;">
+                                        {{ c.assignee.full_name if c.assignee else 'Unassigned' }}
+                                    </span>
+                                </td>
+                                <td>
+                                    <div style="display: flex; gap: 6px;">
+                                        <button class="btn btn-outline btn-sm" data-modal-target="modal-assign-{{ c.id }}">
+                                            Assign
+                                        </button>
+                                        <button class="btn btn-outline btn-sm" data-modal-target="modal-status-{{ c.id }}">
+                                            Status
+                                        </button>
+                                    </div>
+
+                                    <!-- Assign Modal -->
+                                    <div id="modal-assign-{{ c.id }}" class="modal-overlay">
+                                        <div class="modal-dialog">
+                                            <div class="modal-header">
+                                                <h3 style="font-size: 1.1rem; font-weight: 600;">Assign Complaint #{{ c.complaint_id }}</h3>
+                                                <button type="button" class="modal-close">&times;</button>
+                                            </div>
+                                            <form action="{{ url_for('admin.assign', complaint_id=c.id) }}" method="POST">
+                                                <div class="modal-body">
+                                                    <div class="form-group">
+                                                        <label class="form-label">Department</label>
+                                                        <select name="department_id" class="form-select">
+                                                            <option value="">Select Department</option>
+                                                            {% for d in departments %}
+                                                                <option value="{{ d.id }}" {% if c.department_id == d.id %}selected{% endif %}>{{ d.name }}</option>
+                                                            {% endfor %}
+                                                        </select>
+                                                    </div>
+                                                    <div class="form-group">
+                                                        <label class="form-label">Assign to Staff Member</label>
+                                                        <select name="staff_id" class="form-select">
+                                                            <option value="">Unassigned</option>
+                                                            {% for s in staff_members %}
+                                                                <option value="{{ s.id }}" {% if c.assigned_to == s.id %}selected{% endif %}>
+                                                                    {{ s.full_name }} ({{ s.department.name if s.department else 'General' }})
+                                                                </option>
+                                                            {% endfor %}
+                                                        </select>
+                                                    </div>
+                                                    <div class="form-group">
+                                                        <label class="form-label">Assignment Note / Instruction</label>
+                                                        <textarea name="note" rows="2" class="form-control" placeholder="Optional internal instruction..."></textarea>
+                                                    </div>
+                                                </div>
+                                                <div class="modal-footer">
+                                                    <button type="button" class="btn btn-secondary modal-close">Cancel</button>
+                                                    <button type="submit" class="btn btn-primary">Save Assignment</button>
+                                                </div>
+                                            </form>
+                                        </div>
+                                    </div>
+
+                                    <!-- Status Modal -->
+                                    <div id="modal-status-{{ c.id }}" class="modal-overlay">
+                                        <div class="modal-dialog">
+                                            <div class="modal-header">
+                                                <h3 style="font-size: 1.1rem; font-weight: 600;">Change Status #{{ c.complaint_id }}</h3>
+                                                <button type="button" class="modal-close">&times;</button>
+                                            </div>
+                                            <form action="{{ url_for('admin.change_status', complaint_id=c.id) }}" method="POST">
+                                                <div class="modal-body">
+                                                    <div class="form-group">
+                                                        <label class="form-label">New Status</label>
+                                                        <select name="status" class="form-select" onchange="toggleRejection(this, 'reject-box-{{ c.id }}')">
+                                                            <option value="Submitted" {% if c.status == 'Submitted' %}selected{% endif %}>Submitted</option>
+                                                            <option value="Under Review" {% if c.status == 'Under Review' %}selected{% endif %}>Under Review</option>
+                                                            <option value="Assigned" {% if c.status == 'Assigned' %}selected{% endif %}>Assigned</option>
+                                                            <option value="In Progress" {% if c.status == 'In Progress' %}selected{% endif %}>In Progress</option>
+                                                            <option value="Resolved" {% if c.status == 'Resolved' %}selected{% endif %}>Resolved</option>
+                                                            <option value="Rejected" {% if c.status == 'Rejected' %}selected{% endif %}>Rejected</option>
+                                                        </select>
+                                                    </div>
+                                                    <div class="form-group" id="reject-box-{{ c.id }}" style="display: {% if c.status == 'Rejected' %}block{% else %}none{% endif %};">
+                                                        <label class="form-label">Rejection Reason</label>
+                                                        <textarea name="rejection_reason" rows="2" class="form-control" placeholder="Specify why the complaint was rejected...">{{ c.rejection_reason or '' }}</textarea>
+                                                    </div>
+                                                    <div class="form-group">
+                                                        <label class="form-label">Timeline Note</label>
+                                                        <textarea name="note" rows="2" class="form-control" placeholder="Update note visible on timeline..."></textarea>
+                                                    </div>
+                                                </div>
+                                                <div class="modal-footer">
+                                                    <button type="button" class="btn btn-secondary modal-close">Cancel</button>
+                                                    <button type="submit" class="btn btn-primary">Update Status</button>
+                                                </div>
+                                            </form>
+                                        </div>
+                                    </div>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        {% else %}
+            <div style="text-align: center; padding: 40px; color: #64748b;">
+                No complaints recorded yet.
+            </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+    function toggleRejection(selectElem, boxId) {
+        const box = document.getElementById(boxId);
+        if (box) {
+            box.style.display = selectElem.value === 'Rejected' ? 'block' : 'none';
+        }
+    }
+
+    const analyticsData = {{ analytics|tojson }};
+    initAnalyticsCharts(analyticsData);
+</script>
+{% endblock %}
+

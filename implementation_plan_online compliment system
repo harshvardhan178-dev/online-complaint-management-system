@@ -1,0 +1,292 @@
+# SmartComplaint – Online Complaint Management System
+
+A secure, user-friendly web application for submitting, tracking, and resolving complaints. Users submit complaints online, administrators manage and assign them, and department staff resolve them — all through a modern, responsive interface.
+
+---
+
+## 1. System Architecture
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│                        CLIENT LAYER                         │
+│         HTML + CSS + Vanilla JS  (Browser)                  │
+│   Pages: Login, Dashboard, Submit, Track, Admin Panel       │
+└────────────────────────┬────────────────────────────────────┘
+                         │ HTTP / AJAX (Fetch API)
+┌────────────────────────▼────────────────────────────────────┐
+│                      FLASK BACKEND                          │
+│                                                             │
+│  ┌──────────────┐  ┌──────────────┐  ┌──────────────────┐  │
+│  │  Auth Routes │  │ Complaint    │  │  Admin / Staff   │  │
+│  │  /register   │  │ Routes       │  │  Routes          │  │
+│  │  /login      │  │ /submit      │  │  /admin/...      │  │
+│  │  /logout     │  │ /track       │  │  /staff/...      │  │
+│  └──────────────┘  │ /history     │  └──────────────────┘  │
+│                    └──────────────┘                         │
+│  ┌──────────────────────────────────────────────────────┐   │
+│  │               Core Services                          │   │
+│  │  Session Manager │ File Upload │ Notification Engine │   │
+│  │  Report Generator │ Analytics  │ Duplicate Detector  │   │
+│  └──────────────────────────────────────────────────────┘   │
+└────────────────────────┬────────────────────────────────────┘
+                         │ SQLAlchemy ORM
+┌────────────────────────▼────────────────────────────────────┐
+│                      MySQL DATABASE                         │
+│  Tables: users, complaints, departments, assignments,       │
+│          status_timeline, notifications, feedback, reports  │
+└─────────────────────────────────────────────────────────────┘
+```
+
+### Architecture Pattern: **MVC (Model-View-Controller)**
+
+| Layer | Technology | Role |
+|---|---|---|
+| View | HTML/CSS/JS | UI rendered via Jinja2 templates |
+| Controller | Flask Routes | Handle HTTP requests & business logic |
+| Model | SQLAlchemy | ORM mapping to MySQL tables |
+| Auth | Flask-Session + Bcrypt | Secure session-based authentication |
+| File Storage | Local `/uploads` folder | Complaint attachments |
+
+---
+
+## 2. Folder Structure
+
+```
+smartcomplaint/
+│
+├── app/
+│   ├── __init__.py            # Flask app factory
+│   ├── config.py              # Config (DB URI, secret key)
+│   ├── models.py              # All DB models (SQLAlchemy)
+│   │
+│   ├── routes/
+│   │   ├── auth.py            # Register, Login, Logout
+│   │   ├── user.py            # User dashboard, submit, track
+│   │   ├── admin.py           # Admin panel routes
+│   │   └── staff.py           # Staff panel routes
+│   │
+│   ├── services/
+│   │   ├── complaint_service.py   # Core complaint logic
+│   │   ├── notification_service.py # Email/in-app notifications
+│   │   └── report_service.py      # Report generation
+│   │
+│   ├── static/
+│   │   ├── css/
+│   │   │   └── style.css      # Global styles
+│   │   ├── js/
+│   │   │   ├── main.js        # Shared JS utilities
+│   │   │   ├── dashboard.js   # Dashboard interactions
+│   │   │   └── charts.js      # Analytics charts (Chart.js)
+│   │   └── uploads/           # Uploaded complaint files
+│   │
+│   └── templates/
+│       ├── base.html          # Base layout with sidebar
+│       ├── auth/
+│       │   ├── login.html
+│       │   └── register.html
+│       ├── user/
+│       │   ├── dashboard.html
+│       │   ├── submit_complaint.html
+│       │   ├── track_complaint.html
+│       │   ├── complaint_history.html
+│       │   └── feedback.html
+│       ├── admin/
+│       │   ├── dashboard.html
+│       │   ├── complaints.html
+│       │   ├── users.html
+│       │   ├── reports.html
+│       │   └── analytics.html
+│       └── staff/
+│           ├── dashboard.html
+│           └── complaint_detail.html
+│
+├── migrations/                # Flask-Migrate DB migrations
+├── uploads/                   # File upload directory
+├── requirements.txt           # Python dependencies
+├── run.py                     # Entry point
+└── .env                       # Environment variables (secret)
+```
+
+---
+
+## 3. Feature List
+
+### User Module
+| Feature | Description |
+|---|---|
+| Registration | Name, email, password, phone, role selection |
+| Login / Logout | Session-based secure authentication |
+| User Dashboard | Summary cards: submitted, in-progress, resolved |
+| Submit Complaint | Title, description, category, priority, file upload |
+| Track Complaint | Live status timeline with timestamps |
+| Complaint History | Table with filters and search |
+| Notifications | In-app alerts for status changes |
+| Feedback | Star rating + comment after resolution |
+
+### Admin Module
+| Feature | Description |
+|---|---|
+| Admin Dashboard | KPI cards + charts (Chart.js) |
+| View All Complaints | Paginated table with full details |
+| Filter & Search | By status, priority, department, date range |
+| Assign Complaints | Assign to department/staff member |
+| Change Status | With optional rejection reason |
+| Manage Users | View, activate, deactivate, change roles |
+| Generate Reports | CSV/PDF export of complaint data |
+| Analytics | Bar/pie/line charts for trends |
+
+### Staff Module
+| Feature | Description |
+|---|---|
+| View Assigned Complaints | Only complaints assigned to them |
+| Update Progress | Add progress notes to timeline |
+| Resolution Details | Describe how it was resolved |
+| Mark Resolved | Change status to Resolved |
+
+---
+
+## 4. Database Schema
+
+### Table: `users`
+| Column | Type | Constraints |
+|---|---|---|
+| id | INT | PK, AUTO_INCREMENT |
+| full_name | VARCHAR(100) | NOT NULL |
+| email | VARCHAR(150) | UNIQUE, NOT NULL |
+| password_hash | VARCHAR(255) | NOT NULL |
+| phone | VARCHAR(20) | |
+| role | ENUM('user','admin','staff') | DEFAULT 'user' |
+| department_id | INT | FK → departments(id), nullable |
+| is_active | BOOLEAN | DEFAULT TRUE |
+| created_at | DATETIME | DEFAULT NOW() |
+
+### Table: `departments`
+| Column | Type | Constraints |
+|---|---|---|
+| id | INT | PK, AUTO_INCREMENT |
+| name | VARCHAR(100) | UNIQUE, NOT NULL |
+| description | TEXT | |
+| created_at | DATETIME | DEFAULT NOW() |
+
+### Table: `complaints`
+| Column | Type | Constraints |
+|---|---|---|
+| id | INT | PK, AUTO_INCREMENT |
+| complaint_id | VARCHAR(20) | UNIQUE (e.g., CMP-2024-00001) |
+| user_id | INT | FK → users(id) |
+| title | VARCHAR(200) | NOT NULL |
+| description | TEXT | NOT NULL |
+| category | VARCHAR(100) | |
+| priority | ENUM('Low','Medium','High','Critical') | DEFAULT 'Medium' |
+| status | ENUM('Submitted','Under Review','Assigned','In Progress','Resolved','Rejected') | DEFAULT 'Submitted' |
+| department_id | INT | FK → departments(id), nullable |
+| assigned_to | INT | FK → users(id), nullable |
+| rejection_reason | TEXT | nullable |
+| attachment | VARCHAR(255) | File path, nullable |
+| created_at | DATETIME | DEFAULT NOW() |
+| updated_at | DATETIME | ON UPDATE NOW() |
+
+### Table: `status_timeline`
+| Column | Type | Constraints |
+|---|---|---|
+| id | INT | PK, AUTO_INCREMENT |
+| complaint_id | INT | FK → complaints(id) |
+| status | VARCHAR(50) | NOT NULL |
+| note | TEXT | |
+| changed_by | INT | FK → users(id) |
+| changed_at | DATETIME | DEFAULT NOW() |
+
+### Table: `notifications`
+| Column | Type | Constraints |
+|---|---|---|
+| id | INT | PK, AUTO_INCREMENT |
+| user_id | INT | FK → users(id) |
+| complaint_id | INT | FK → complaints(id) |
+| message | TEXT | NOT NULL |
+| is_read | BOOLEAN | DEFAULT FALSE |
+| created_at | DATETIME | DEFAULT NOW() |
+
+### Table: `feedback`
+| Column | Type | Constraints |
+|---|---|---|
+| id | INT | PK, AUTO_INCREMENT |
+| complaint_id | INT | FK → complaints(id), UNIQUE |
+| user_id | INT | FK → users(id) |
+| rating | TINYINT | 1–5 |
+| comment | TEXT | |
+| submitted_at | DATETIME | DEFAULT NOW() |
+
+---
+
+### Entity Relationship Diagram
+
+```
+users ──────< complaints >────── departments
+  │               │
+  │          status_timeline
+  │               │
+  └──── notifications
+  │
+  └──── feedback (1:1 with complaints)
+```
+
+---
+
+## 5. Technology Stack — Explained
+
+| Technology | Why We Use It |
+|---|---|
+| **HTML/CSS/JS** | Standard web frontend — no framework needed for this scope |
+| **Python Flask** | Lightweight, easy to learn, great for web apps with templates |
+| **MySQL** | Robust relational DB, perfect for structured complaint data |
+| **SQLAlchemy** | ORM to interact with MySQL using Python classes — no raw SQL needed |
+| **Flask-Bcrypt** | Securely hash passwords — never store plain text |
+| **Flask-Session** | Server-side session management for secure auth |
+| **Flask-Migrate** | Database migration management |
+| **Chart.js** | Beautiful, responsive charts for analytics dashboard |
+| **Jinja2** | Flask's built-in templating engine — renders HTML from Python |
+| **python-dotenv** | Manage secrets and config via `.env` file |
+
+### Python Dependencies (`requirements.txt`)
+```
+Flask==3.0.0
+Flask-SQLAlchemy==3.1.1
+Flask-Migrate==4.0.5
+Flask-Bcrypt==1.0.1
+Flask-Session==0.6.0
+Flask-Mail==0.9.1
+PyMySQL==1.1.0
+python-dotenv==1.0.0
+Pillow==10.2.0
+reportlab==4.0.9
+```
+
+---
+
+## 6. Development Roadmap
+
+| Phase | What We Build | Status |
+|---|---|---|
+| **Phase 1** | Architecture + DB Schema (this doc) | ✅ Complete |
+| **Phase 2** | Project Setup + Database Models + Flask App Factory | ✅ Complete |
+| **Phase 3** | Authentication System (Register, Login, Logout, Session Guards) | ✅ Complete |
+| **Phase 4** | User Module (Dashboard, Submit, Track, History, Feedback) | ✅ Complete |
+| **Phase 5** | Admin Module (Dashboard, Manage Complaints, Users, Assign) | ✅ Complete |
+| **Phase 6** | Staff Module (View Assigned, Update, Resolve) | ✅ Complete |
+| **Phase 7** | Analytics, Reports, Notifications | ✅ Complete |
+| **Phase 8** | UI Polish, Responsive Design, Animations | ✅ Complete |
+| **Phase 9** | Testing (Unit + Integration + Manual) | ✅ Complete |
+| **Phase 10** | Deployment Guide (Linux/Windows VPS, WSGI, Nginx) | ✅ Complete |
+
+---
+
+## Open Questions
+
+> [!IMPORTANT]
+> Please confirm the following before we begin coding:
+
+1. **Email Notifications**: Should we implement real email sending via Flask-Mail (requires SMTP credentials), or should we use in-app notifications only for now?
+2. **Duplicate Detection**: Should we implement automatic duplicate complaint detection (by comparing title/description similarity)?
+3. **Reports**: CSV only, or also PDF export?
+4. **Default Admin Account**: Should we seed a default admin account in the database on first run?
+5. **Deployment Target**: Where do you plan to deploy — local machine only, or a server (Heroku, VPS, etc.)?

@@ -1,0 +1,55 @@
+{% extends 'base.html' %}
+
+{% block title %}Notifications{% endblock %}
+{% block header_title %}Notifications{% endblock %}
+
+{% block content %}
+<div style="max-width: 800px; margin: 0 auto;">
+    <div class="card">
+        <div class="card-header">
+            <h2 class="card-title"><i class="fa-solid fa-bell"></i> All Notifications</h2>
+            {% if notifications %}
+                <form action="{{ url_for('user.mark_all_read') }}" method="POST">
+                    <button type="submit" class="btn btn-outline btn-sm">
+                        <i class="fa-solid fa-check-double"></i> Mark All as Read
+                    </button>
+                </form>
+            {% endif %}
+        </div>
+        <div class="card-body">
+            {% if notifications %}
+                <ul style="list-style: none;">
+                    {% for n in notifications %}
+                        <li style="padding: 14px 18px; margin-bottom: 10px; border-radius: 8px; border: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center; {% if not n.is_read %}background: #eff6ff; border-color: #bfdbfe;{% else %}background: white;{% endif %}">
+                            <div style="display: flex; gap: 14px; align-items: flex-start;">
+                                <div style="margin-top: 2px; color: #2563eb;">
+                                    <i class="fa-solid fa-circle-dot"></i>
+                                </div>
+                                <div>
+                                    <p style="margin: 0; font-size: 0.95rem; color: #1e293b; {% if not n.is_read %}font-weight: 600;{% endif %}">
+                                        {{ n.message }}
+                                    </p>
+                                    <span style="font-size: 0.8rem; color: #64748b; margin-top: 4px; display: inline-block;">
+                                        {{ n.created_at.strftime('%B %d, %Y at %H:%M') }}
+                                    </span>
+                                </div>
+                            </div>
+                            {% if n.complaint_id %}
+                                <a href="{{ url_for('user.track_complaint', complaint_id=n.complaint.complaint_id) }}" class="btn btn-outline btn-sm" style="white-space: nowrap;">
+                                    View
+                                </a>
+                            {% endif %}
+                        </li>
+                    {% endfor %}
+                </ul>
+            {% else %}
+                <div style="text-align: center; padding: 40px; color: #64748b;">
+                    <i class="fa-regular fa-bell" style="font-size: 2.5rem; margin-bottom: 12px; opacity: 0.5;"></i>
+                    <p>You have no notifications at this time.</p>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}
+

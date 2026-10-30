@@ -1,0 +1,28 @@
+# Virtual Environment
+.venv/
+env/
+venv/
+
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Flask session
+.flask_session/
+
+# Local databases
+*.db
+*.sqlite3
+
+# Uploads directory contents (preserve folder structure)
+uploads/*
+!uploads/.gitkeep
+
+# Environment secrets
+.env
+
+# IDE / Editor files
+.vscode/
+.idea/
+*.swp

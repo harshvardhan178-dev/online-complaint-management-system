@@ -1,0 +1,130 @@
+{% extends 'base.html' %}
+
+{% block title %}Process Complaint #{{ complaint.complaint_id }}{% endblock %}
+{% block header_title %}Process Complaint #{{ complaint.complaint_id }}{% endblock %}
+
+{% block content %}
+<div style="display: grid; grid-template-columns: 2fr 1fr; gap: 24px; align-items: start;">
+    <!-- Left Column: Complaint Info and Timeline -->
+    <div>
+        <div class="card">
+            <div class="card-header">
+                <div>
+                    <span style="font-size: 0.8rem; color: #64748b; font-weight: 600;">TASK DETAILS</span>
+                    <h2 class="card-title" style="margin-top: 2px;">{{ complaint.title }}</h2>
+                </div>
+                <span class="badge {{ complaint.status_badge_class }}" style="font-size: 0.95rem; padding: 6px 14px;">
+                    {{ complaint.status }}
+                </span>
+            </div>
+            <div class="card-body">
+                <!-- Meta tags -->
+                <div style="display: flex; gap: 12px; margin-bottom: 20px; flex-wrap: wrap;">
+                    <span class="badge badge-light"><i class="fa-solid fa-tag"></i> {{ complaint.category }}</span>
+                    <span class="badge {{ complaint.priority_badge_class }}"><i class="fa-solid fa-bolt"></i> {{ complaint.priority }} Priority</span>
+                    <span class="badge badge-light"><i class="fa-solid fa-calendar"></i> Submitted {{ complaint.created_at.strftime('%b %d, %Y') }}</span>
+                </div>
+
+                <!-- Submitter Profile -->
+                <div style="background: #f8fafc; border: 1px solid var(--border-color); border-radius: 8px; padding: 14px 18px; margin-bottom: 20px;">
+                    <div style="font-size: 0.75rem; text-transform: uppercase; color: #64748b; font-weight: 700; margin-bottom: 6px;">
+                        Submitter Contact Information
+                    </div>
+                    <div style="font-weight: 600; color: #1e293b;">{{ complaint.submitter.full_name }}</div>
+                    <div style="font-size: 0.88rem; color: #475569;">
+                        Email: {{ complaint.submitter.email }} &bull; Phone: {{ complaint.submitter.phone or 'Not provided' }}
+                    </div>
+                </div>
+
+                <!-- Description -->
+                <div style="margin-bottom: 24px;">
+                    <h3 style="font-size: 0.95rem; font-weight: 600; margin-bottom: 8px;">Description</h3>
+                    <div style="white-space: pre-wrap; background: white; border: 1px solid var(--border-color); padding: 16px; border-radius: 6px; font-size: 0.95rem; line-height: 1.6;">
+                        {{ complaint.description }}
+                    </div>
+                </div>
+
+                <!-- Attachment -->
+                {% if complaint.attachment %}
+                    <div style="margin-bottom: 24px; padding: 12px 16px; background: #eff6ff; border: 1px solid #bfdbfe; border-radius: 6px; display: flex; align-items: center; justify-content: space-between;">
+                        <div style="display: flex; align-items: center; gap: 10px;">
+                            <i class="fa-solid fa-paperclip" style="color: #2563eb; font-size: 1.2rem;"></i>
+                            <span style="font-weight: 600; font-size: 0.9rem;">{{ complaint.attachment }}</span>
+                        </div>
+                        <a href="{{ url_for('user.view_upload', filename=complaint.attachment) }}" target="_blank" class="btn btn-outline btn-sm">
+                            <i class="fa-solid fa-download"></i> View File
+                        </a>
+                    </div>
+                {% endif %}
+
+                <!-- Existing Timeline -->
+                <div style="margin-top: 30px;">
+                    <h3 style="font-size: 1.05rem; font-weight: 600; margin-bottom: 16px;">
+                        <i class="fa-solid fa-timeline"></i> Action History
+                    </h3>
+                    <div class="timeline">
+                        {% for t in complaint.timeline %}
+                            <div class="timeline-item">
+                                <div class="timeline-dot active">
+                                    <i class="fa-solid fa-check"></i>
+                                </div>
+                                <div class="timeline-content">
+                                    <div class="timeline-header">
+                                        <span class="timeline-status">{{ t.status }}</span>
+                                        <span class="timeline-date">{{ t.changed_at.strftime('%b %d, %H:%M') }}</span>
+                                    </div>
+                                    <p class="timeline-note">{{ t.note }}</p>
+                                    <div style="font-size: 0.75rem; color: #94a3b8; margin-top: 4px;">
+                                        By {{ t.author.full_name if t.author else 'System' }}
+                                    </div>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Right Column: Staff Actions Form -->
+    <div>
+        <!-- Progress Update Card -->
+        <div class="card" style="margin-bottom: 24px;">
+            <div class="card-header">
+                <h3 class="card-title"><i class="fa-solid fa-pen-nib"></i> Add Progress Note</h3>
+            </div>
+            <div class="card-body">
+                <form action="{{ url_for('staff.update_progress', complaint_id=complaint.id) }}" method="POST">
+                    <div class="form-group">
+                        <label class="form-label">Note Description</label>
+                        <textarea name="note" rows="3" class="form-control" required placeholder="e.g., Technician dispatched to inspection site; waiting for spare parts..."></textarea>
+                        <div class="form-hint">This will mark status as 'In Progress' and notify the user.</div>
+                    </div>
+                    <button type="submit" class="btn btn-secondary" style="width: 100%; justify-content: center;">
+                        <i class="fa-solid fa-clock-rotate-left"></i> Post Update
+                    </button>
+                </form>
+            </div>
+        </div>
+
+        <!-- Resolution Card -->
+        <div class="card" style="border-left: 4px solid var(--success);">
+            <div class="card-header">
+                <h3 class="card-title"><i class="fa-solid fa-circle-check text-success"></i> Mark as Resolved</h3>
+            </div>
+            <div class="card-body">
+                <form action="{{ url_for('staff.resolve', complaint_id=complaint.id) }}" method="POST">
+                    <div class="form-group">
+                        <label class="form-label">Resolution Details *</label>
+                        <textarea name="resolution_note" rows="4" class="form-control" required placeholder="Explain how the issue was fixed, components replaced, or actions completed..."></textarea>
+                    </div>
+                    <button type="submit" class="btn btn-success" style="width: 100%; justify-content: center;">
+                        <i class="fa-solid fa-check"></i> Complete & Resolve
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+

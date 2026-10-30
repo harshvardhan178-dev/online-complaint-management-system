@@ -1,0 +1,121 @@
+{% extends 'base.html' %}
+
+{% block title %}My Complaint History{% endblock %}
+{% block header_title %}My Complaint History{% endblock %}
+
+{% block content %}
+<!-- Filter & Search Toolbar -->
+<div class="card" style="margin-bottom: 24px;">
+    <div class="card-body">
+        <form action="{{ url_for('user.complaint_history') }}" method="GET" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)) 120px; gap: 14px; align-items: end;">
+            <div class="form-group" style="margin-bottom: 0;">
+                <label class="form-label" style="font-size: 0.8rem;">Search</label>
+                <input type="text" name="search" class="form-control" placeholder="Search keywords..." value="{{ search }}">
+            </div>
+
+            <div class="form-group" style="margin-bottom: 0;">
+                <label class="form-label" style="font-size: 0.8rem;">Status</label>
+                <select name="status" class="form-select">
+                    <option value="">All Statuses</option>
+                    <option value="Submitted" {% if status_filter == 'Submitted' %}selected{% endif %}>Submitted</option>
+                    <option value="Under Review" {% if status_filter == 'Under Review' %}selected{% endif %}>Under Review</option>
+                    <option value="Assigned" {% if status_filter == 'Assigned' %}selected{% endif %}>Assigned</option>
+                    <option value="In Progress" {% if status_filter == 'In Progress' %}selected{% endif %}>In Progress</option>
+                    <option value="Resolved" {% if status_filter == 'Resolved' %}selected{% endif %}>Resolved</option>
+                    <option value="Rejected" {% if status_filter == 'Rejected' %}selected{% endif %}>Rejected</option>
+                </select>
+            </div>
+
+            <div class="form-group" style="margin-bottom: 0;">
+                <label class="form-label" style="font-size: 0.8rem;">Category</label>
+                <select name="category" class="form-select">
+                    <option value="">All Categories</option>
+                    {% for cat in categories %}
+                        <option value="{{ cat }}" {% if category_filter == cat %}selected{% endif %}>{{ cat }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div class="form-group" style="margin-bottom: 0;">
+                <label class="form-label" style="font-size: 0.8rem;">Priority</label>
+                <select name="priority" class="form-select">
+                    <option value="">All Priorities</option>
+                    <option value="Low" {% if priority_filter == 'Low' %}selected{% endif %}>Low</option>
+                    <option value="Medium" {% if priority_filter == 'Medium' %}selected{% endif %}>Medium</option>
+                    <option value="High" {% if priority_filter == 'High' %}selected{% endif %}>High</option>
+                    <option value="Critical" {% if priority_filter == 'Critical' %}selected{% endif %}>Critical</option>
+                </select>
+            </div>
+
+            <div style="display: flex; gap: 8px;">
+                <button type="submit" class="btn btn-primary" style="flex: 1; justify-content: center;">
+                    <i class="fa-solid fa-filter"></i> Filter
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- History Table -->
+<div class="card">
+    <div class="card-header">
+        <h2 class="card-title">
+            <i class="fa-solid fa-list"></i> Complaints ({{ complaints|length }})
+        </h2>
+        {% if search or status_filter or category_filter or priority_filter %}
+            <a href="{{ url_for('user.complaint_history') }}" class="btn btn-outline btn-sm">Clear Filters</a>
+        {% endif %}
+    </div>
+    <div class="card-body" style="padding: 0;">
+        {% if complaints %}
+            <div class="table-responsive">
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>Complaint ID</th>
+                            <th>Title</th>
+                            <th>Category</th>
+                            <th>Priority</th>
+                            <th>Status</th>
+                            <th>Department</th>
+                            <th>Submitted On</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for c in complaints %}
+                            <tr>
+                                <td>
+                                    <a href="{{ url_for('user.track_complaint', complaint_id=c.complaint_id) }}" style="font-weight: 600;">
+                                        #{{ c.complaint_id }}
+                                    </a>
+                                </td>
+                                <td>
+                                    <div style="font-weight: 500; max-width: 200px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+                                        {{ c.title }}
+                                    </div>
+                                </td>
+                                <td><span class="badge badge-light">{{ c.category }}</span></td>
+                                <td><span class="{{ c.priority_badge_class }}">{{ c.priority }}</span></td>
+                                <td><span class="badge {{ c.status_badge_class }}">{{ c.status }}</span></td>
+                                <td style="font-size: 0.88rem; color: #475569;">{{ c.department.name if c.department else 'Unassigned' }}</td>
+                                <td style="font-size: 0.85rem; color: #64748b;">{{ c.created_at.strftime('%Y-%m-%d') }}</td>
+                                <td>
+                                    <a href="{{ url_for('user.track_complaint', complaint_id=c.complaint_id) }}" class="btn btn-outline btn-sm">
+                                        Track
+                                    </a>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        {% else %}
+            <div style="text-align: center; padding: 40px; color: #64748b;">
+                <p>No complaints matching the selected filters.</p>
+            </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
+

@@ -1,0 +1,77 @@
+{% extends 'base.html' %}
+
+{% block title %}System Analytics & Insights{% endblock %}
+{% block header_title %}Analytics & Performance Trends{% endblock %}
+
+{% block content %}
+<!-- KPI summary -->
+<div class="grid-cards">
+    <div class="stat-card">
+        <div class="stat-header">
+            <span>Overall Submissions</span>
+            <div class="stat-icon" style="background: #eff6ff; color: #2563eb;">
+                <i class="fa-solid fa-folder-open"></i>
+            </div>
+        </div>
+        <div class="stat-value">{{ analytics.total }}</div>
+    </div>
+
+    <div class="stat-card">
+        <div class="stat-header">
+            <span>Overall Resolution Rate</span>
+            <div class="stat-icon" style="background: #ecfdf5; color: #10b981;">
+                <i class="fa-solid fa-chart-line"></i>
+            </div>
+        </div>
+        <div class="stat-value">{{ analytics.resolution_rate }}%</div>
+    </div>
+
+    <div class="stat-card">
+        <div class="stat-header">
+            <span>Average Satisfaction</span>
+            <div class="stat-icon" style="background: #fefce8; color: #eab308;">
+                <i class="fa-solid fa-star"></i>
+            </div>
+        </div>
+        <div class="stat-value">{{ analytics.avg_rating }} / 5</div>
+    </div>
+</div>
+
+<!-- Charts Grid -->
+<div style="display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin-bottom: 24px;">
+    <div class="card">
+        <div class="card-header">
+            <h2 class="card-title"><i class="fa-solid fa-chart-pie"></i> Status Distribution</h2>
+        </div>
+        <div class="card-body" style="height: 300px; position: relative;">
+            <canvas id="statusChart"></canvas>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-header">
+            <h2 class="card-title"><i class="fa-solid fa-signal"></i> Priority Distribution</h2>
+        </div>
+        <div class="card-body" style="height: 300px; position: relative;">
+            <canvas id="priorityChart"></canvas>
+        </div>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-header">
+        <h2 class="card-title"><i class="fa-solid fa-chart-line"></i> 6-Month Intake Volume Trend</h2>
+    </div>
+    <div class="card-body" style="height: 320px; position: relative;">
+        <canvas id="trendChart"></canvas>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+    const analyticsData = {{ analytics|tojson }};
+    initAnalyticsCharts(analyticsData);
+</script>
+{% endblock %}
+
