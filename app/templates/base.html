@@ -3,66 +3,92 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{% block title %}SmartComplaint{% endblock %} — Complaint Management System</title>
+    <title>{% block title %}SmartComplaint{% endblock %} — Enterprise Complaint SaaS</title>
+    <!-- Google Fonts: Inter & Plus Jakarta Sans -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Plus+Jakarta+Sans:wght@600;700;800&display=swap" rel="stylesheet">
+    <!-- Font Awesome Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <!-- Main SaaS Stylesheet -->
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <!-- Chart.js for Dashboards & Analytics -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     {% block extra_head %}{% endblock %}
 </head>
 <body>
     <div class="app-container">
-        <!-- Sidebar Navigation -->
+        <!-- Mobile Sidebar Backdrop Overlay -->
+        <div id="sidebar-backdrop" class="sidebar-backdrop"></div>
+
+        <!-- Sidebar Navigation (Midnight Navy #101827) -->
         <aside class="sidebar">
             <div class="sidebar-brand">
                 <div class="brand-icon">
-                    <i class="fa-solid fa-shield-halved"></i>
+                    <i class="fa-solid fa-layer-group"></i>
                 </div>
                 <span>SmartComplaint</span>
+                <span class="brand-badge">SaaS</span>
             </div>
 
             <ul class="sidebar-menu">
                 {% if session.get('user_role') == 'admin' %}
-                    <li class="menu-section">Administration</li>
+                    <li class="menu-section">Management Console</li>
                     <li class="menu-item">
                         <a href="{{ url_for('admin.dashboard') }}" class="menu-link {% if request.endpoint == 'admin.dashboard' %}active{% endif %}">
-                            <i class="fa-solid fa-gauge-high"></i>
+                            <i class="fa-solid fa-chart-line"></i>
                             <span>Admin Overview</span>
                         </a>
                     </li>
                     <li class="menu-item">
                         <a href="{{ url_for('admin.complaints') }}" class="menu-link {% if request.endpoint == 'admin.complaints' %}active{% endif %}">
-                            <i class="fa-solid fa-list-check"></i>
-                            <span>Manage Complaints</span>
+                            <i class="fa-solid fa-ticket-simple"></i>
+                            <span>All Complaints</span>
                         </a>
                     </li>
                     <li class="menu-item">
                         <a href="{{ url_for('admin.users') }}" class="menu-link {% if request.endpoint == 'admin.users' %}active{% endif %}">
                             <i class="fa-solid fa-users-gear"></i>
-                            <span>Users & Departments</span>
+                            <span>Users & Units</span>
                         </a>
                     </li>
                     <li class="menu-item">
                         <a href="{{ url_for('admin.reports') }}" class="menu-link {% if request.endpoint == 'admin.reports' %}active{% endif %}">
-                            <i class="fa-solid fa-file-export"></i>
-                            <span>Reports & Exports</span>
+                            <i class="fa-solid fa-file-invoice"></i>
+                            <span>Export Reports</span>
                         </a>
                     </li>
                     <li class="menu-item">
                         <a href="{{ url_for('admin.analytics') }}" class="menu-link {% if request.endpoint == 'admin.analytics' %}active{% endif %}">
                             <i class="fa-solid fa-chart-pie"></i>
-                            <span>Analytics & Trends</span>
+                            <span>Intelligence & KPI</span>
+                        </a>
+                    </li>
+
+                    <li class="menu-section">Account</li>
+                    <li class="menu-item">
+                        <a href="{{ url_for('user.profile') }}" class="menu-link {% if request.endpoint == 'user.profile' %}active{% endif %}">
+                            <i class="fa-solid fa-user-gear"></i>
+                            <span>Profile & Settings</span>
                         </a>
                     </li>
                 {% elif session.get('user_role') == 'staff' %}
-                    <li class="menu-section">Staff Portal</li>
+                    <li class="menu-section">Resolution Workspace</li>
                     <li class="menu-item">
-                        <a href="{{ url_for('staff.dashboard') }}" class="menu-link {% if request.endpoint == 'staff.dashboard' %}active{% endif %}">
+                        <a href="{{ url_for('staff.dashboard') }}" class="menu-link {% if request.endpoint in ('staff.dashboard', 'staff.complaint_detail') %}active{% endif %}">
                             <i class="fa-solid fa-inbox"></i>
-                            <span>Assigned Tasks</span>
+                            <span>Assigned Tickets</span>
+                        </a>
+                    </li>
+                    <li class="menu-section">Account</li>
+                    <li class="menu-item">
+                        <a href="{{ url_for('user.profile') }}" class="menu-link {% if request.endpoint == 'user.profile' %}active{% endif %}">
+                            <i class="fa-solid fa-user-gear"></i>
+                            <span>My Profile</span>
                         </a>
                     </li>
                 {% else %}
-                    <li class="menu-section">User Portal</li>
+                    <li class="menu-section">User Space</li>
                     <li class="menu-item">
                         <a href="{{ url_for('user.dashboard') }}" class="menu-link {% if request.endpoint == 'user.dashboard' %}active{% endif %}">
                             <i class="fa-solid fa-house"></i>
@@ -77,7 +103,7 @@
                     </li>
                     <li class="menu-item">
                         <a href="{{ url_for('user.track_complaint') }}" class="menu-link {% if request.endpoint == 'user.track_complaint' %}active{% endif %}">
-                            <i class="fa-solid fa-magnifying-glass-location"></i>
+                            <i class="fa-solid fa-location-crosshairs"></i>
                             <span>Track Status</span>
                         </a>
                     </li>
@@ -96,53 +122,74 @@
                             {% endif %}
                         </a>
                     </li>
+                    <li class="menu-section">Account</li>
+                    <li class="menu-item">
+                        <a href="{{ url_for('user.profile') }}" class="menu-link {% if request.endpoint == 'user.profile' %}active{% endif %}">
+                            <i class="fa-solid fa-user-gear"></i>
+                            <span>My Profile</span>
+                        </a>
+                    </li>
                 {% endif %}
             </ul>
 
+            <!-- Sidebar User Card Footer -->
             <div class="sidebar-footer">
-                <div class="user-snippet">
+                <a href="{{ url_for('user.profile') }}" class="user-snippet" title="Manage Profile">
                     <div class="user-avatar">
                         {{ session.get('user_name', 'U')[0]|upper }}
                     </div>
-                    <div style="overflow: hidden;">
-                        <div style="font-weight: 600; text-overflow: ellipsis; white-space: nowrap; overflow: hidden;">
+                    <div style="min-width: 0; flex: 1;">
+                        <div class="user-meta-name">
                             {{ session.get('user_name', 'User') }}
                         </div>
-                        <div style="font-size: 0.75rem; color: #94a3b8; text-transform: uppercase;">
+                        <div class="user-meta-role">
                             {{ session.get('user_role', 'user') }}
                         </div>
                     </div>
-                </div>
+                    <i class="fa-solid fa-chevron-right" style="font-size: 0.75rem; color: #64748B;"></i>
+                </a>
             </div>
         </aside>
 
         <!-- Main Workspace -->
         <div class="main-wrapper">
             <header class="top-navbar">
-                <div style="display: flex; align-items: center; gap: 15px;">
-                    <button id="sidebar-toggle" class="btn btn-outline btn-sm" style="display: none;" aria-label="Toggle Menu">
+                <div class="nav-left">
+                    <button id="sidebar-toggle" class="btn btn-outline btn-sm" style="display: none;" aria-label="Toggle Navigation">
                         <i class="fa-solid fa-bars"></i>
                     </button>
-                    <h1 class="page-title">{% block header_title %}Overview{% endblock %}</h1>
+                    <div>
+                        <h1 class="page-title">{% block header_title %}Overview{% endblock %}</h1>
+                    </div>
                 </div>
 
                 <div class="top-actions">
                     {% if session.get('user_role') == 'user' %}
                         <a href="{{ url_for('user.submit_complaint') }}" class="btn btn-primary btn-sm">
-                            <i class="fa-solid fa-plus"></i> Submit Complaint
+                            <i class="fa-solid fa-plus"></i> <span>New Ticket</span>
                         </a>
                         <a href="{{ url_for('user.notifications') }}" class="btn btn-outline btn-sm" title="Notifications" style="position: relative;">
                             <i class="fa-solid fa-bell"></i>
                             {% if unread_notifications_count > 0 %}
-                                <span style="position: absolute; top: -5px; right: -5px; background: #ef4444; color: white; border-radius: 50%; width: 18px; height: 18px; font-size: 10px; display: flex; align-items: center; justify-content: center; font-weight: bold;">
+                                <span style="position: absolute; top: -5px; right: -5px; background: #EF4444; color: white; border-radius: 50%; width: 18px; height: 18px; font-size: 10px; display: flex; align-items: center; justify-content: center; font-weight: 700; box-shadow: 0 0 0 2px #FFFFFF;">
                                     {{ unread_notifications_count }}
                                 </span>
                             {% endif %}
                         </a>
+                    {% elif session.get('user_role') == 'admin' %}
+                        <a href="{{ url_for('admin.reports') }}" class="btn btn-outline btn-sm" title="Reports">
+                            <i class="fa-solid fa-file-export"></i> <span>Export</span>
+                        </a>
                     {% endif %}
-                    
-                    <a href="{{ url_for('auth.logout') }}" class="btn btn-secondary btn-sm" title="Log Out">
-                        <i class="fa-solid fa-arrow-right-from-bracket"></i> Logout
+
+                    <!-- Profile Quick Pill -->
+                    <a href="{{ url_for('user.profile') }}" class="btn btn-outline btn-sm" title="Profile & Settings" style="gap: 6px;">
+                        <i class="fa-solid fa-user-circle"></i> <span>Profile</span>
+                    </a>
+
+                    <!-- Logout Button -->
+                    <a href="{{ url_for('auth.logout') }}" class="btn btn-secondary btn-sm" title="Sign Out">
+                        <i class="fa-solid fa-arrow-right-from-bracket"></i> <span>Logout</span>
                     </a>
                 </div>
             </header>
@@ -171,4 +218,3 @@
     {% block extra_scripts %}{% endblock %}
 </body>
 </html>
-

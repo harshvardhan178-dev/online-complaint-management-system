@@ -1,58 +1,74 @@
 {% extends 'base.html' %}
 
-{% block title %}Staff Assigned Tasks{% endblock %}
-{% block header_title %}Staff Portal — My Tasks{% endblock %}
+{% block title %}Staff Workspace — Tasks Queue{% endblock %}
+{% block header_title %}Technician Work Queue{% endblock %}
 
 {% block content %}
 <!-- Staff Stat Cards -->
 <div class="grid-cards">
     <div class="stat-card">
         <div class="stat-header">
-            <span>Total Assigned Tasks</span>
-            <div class="stat-icon" style="background: #eff6ff; color: #2563eb;">
+            <span class="stat-title">Assigned Tickets</span>
+            <div class="stat-icon icon-teal">
                 <i class="fa-solid fa-list-check"></i>
             </div>
         </div>
         <div class="stat-value">{{ stats.total }}</div>
+        <div class="stat-footer">
+            <i class="fa-solid fa-user-check text-success"></i>
+            <span>Assigned to your queue</span>
+        </div>
     </div>
 
     <div class="stat-card">
         <div class="stat-header">
-            <span>Newly Assigned</span>
-            <div class="stat-icon" style="background: #ecfeff; color: #06b6d4;">
+            <span class="stat-title">Newly Assigned</span>
+            <div class="stat-icon icon-blue">
                 <i class="fa-solid fa-inbox"></i>
             </div>
         </div>
         <div class="stat-value">{{ stats.assigned }}</div>
+        <div class="stat-footer">
+            <i class="fa-solid fa-circle-exclamation" style="color: var(--info);"></i>
+            <span>Pending initial inspection</span>
+        </div>
     </div>
 
     <div class="stat-card">
         <div class="stat-header">
-            <span>In Progress</span>
-            <div class="stat-icon" style="background: #f3e8ff; color: #8b5cf6;">
+            <span class="stat-title">Active / In Progress</span>
+            <div class="stat-icon icon-indigo">
                 <i class="fa-solid fa-person-digging"></i>
             </div>
         </div>
         <div class="stat-value">{{ stats.in_progress }}</div>
+        <div class="stat-footer">
+            <i class="fa-solid fa-clock-rotate-left" style="color: #6D28D9;"></i>
+            <span>Under active remediation</span>
+        </div>
     </div>
 
     <div class="stat-card">
         <div class="stat-header">
-            <span>Resolved by Me</span>
-            <div class="stat-icon" style="background: #ecfdf5; color: #10b981;">
+            <span class="stat-title">Resolved</span>
+            <div class="stat-icon icon-emerald">
                 <i class="fa-solid fa-clipboard-check"></i>
             </div>
         </div>
         <div class="stat-value">{{ stats.resolved }}</div>
+        <div class="stat-footer">
+            <i class="fa-solid fa-check-double text-success"></i>
+            <span>Completed resolutions</span>
+        </div>
     </div>
 </div>
 
-<!-- Filters -->
+<!-- Filters Bar -->
 <div class="card" style="margin-bottom: 24px;">
-    <div class="card-body">
-        <form action="{{ url_for('staff.dashboard') }}" method="GET" style="display: flex; gap: 14px; align-items: end;">
+    <div class="card-body" style="padding: 18px 24px;">
+        <form action="{{ url_for('staff.dashboard') }}" method="GET" style="display: flex; gap: 14px; align-items: end; flex-wrap: wrap;">
             <div class="form-group" style="margin-bottom: 0; min-width: 180px;">
-                <label class="form-label" style="font-size: 0.8rem;">Status</label>
+                <label class="form-label" style="font-size: 0.78rem; text-transform: uppercase; color: var(--text-secondary); letter-spacing: 0.04em;">Filter Status</label>
                 <select name="status" class="form-select">
                     <option value="">All Tasks</option>
                     <option value="Assigned" {% if status_filter == 'Assigned' %}selected{% endif %}>Assigned</option>
@@ -62,7 +78,7 @@
             </div>
 
             <div class="form-group" style="margin-bottom: 0; min-width: 180px;">
-                <label class="form-label" style="font-size: 0.8rem;">Priority</label>
+                <label class="form-label" style="font-size: 0.78rem; text-transform: uppercase; color: var(--text-secondary); letter-spacing: 0.04em;">Filter Priority</label>
                 <select name="priority" class="form-select">
                     <option value="">All Priorities</option>
                     <option value="Low" {% if priority_filter == 'Low' %}selected{% endif %}>Low</option>
@@ -72,11 +88,13 @@
                 </select>
             </div>
 
-            <button type="submit" class="btn btn-primary">
-                <i class="fa-solid fa-filter"></i> Filter
+            <button type="submit" class="btn btn-primary" style="height: 42px;">
+                <i class="fa-solid fa-filter"></i> Apply Filters
             </button>
             {% if status_filter or priority_filter %}
-                <a href="{{ url_for('staff.dashboard') }}" class="btn btn-outline">Reset</a>
+                <a href="{{ url_for('staff.dashboard') }}" class="btn btn-outline" style="height: 42px;">
+                    <i class="fa-solid fa-xmark"></i> Reset
+                </a>
             {% endif %}
         </form>
     </div>
@@ -85,7 +103,9 @@
 <!-- Assigned Complaints List -->
 <div class="card">
     <div class="card-header">
-        <h2 class="card-title"><i class="fa-solid fa-tasks"></i> Assigned Complaints ({{ complaints|length }})</h2>
+        <h2 class="card-title">
+            <i class="fa-solid fa-tasks"></i> Assigned Work Queue ({{ complaints|length }})
+        </h2>
     </div>
     <div class="card-body" style="padding: 0;">
         {% if complaints %}
@@ -93,36 +113,46 @@
                 <table class="table">
                     <thead>
                         <tr>
-                            <th>Complaint ID</th>
-                            <th>Title</th>
+                            <th>Ticket ID</th>
+                            <th>Summary</th>
                             <th>Category</th>
                             <th>Priority</th>
                             <th>Status</th>
                             <th>Assigned Date</th>
-                            <th>Actions</th>
+                            <th>Action</th>
                         </tr>
                     </thead>
                     <tbody>
                         {% for c in complaints %}
                             <tr>
                                 <td>
-                                    <a href="{{ url_for('staff.complaint_detail', complaint_id=c.id) }}" style="font-weight: 600;">
+                                    <a href="{{ url_for('staff.complaint_detail', complaint_id=c.id) }}" style="font-weight: 700; color: var(--primary);">
                                         #{{ c.complaint_id }}
                                     </a>
                                 </td>
                                 <td>
-                                    <div style="font-weight: 600; color: #1e293b;">{{ c.title }}</div>
-                                    <div style="font-size: 0.8rem; color: #64748b; max-width: 250px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+                                    <div style="font-weight: 600; color: var(--text-dark);">{{ c.title }}</div>
+                                    <div style="font-size: 0.8rem; color: var(--text-secondary); max-width: 250px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
                                         {{ c.description }}
                                     </div>
                                 </td>
                                 <td><span class="badge badge-light">{{ c.category }}</span></td>
-                                <td><span class="{{ c.priority_badge_class }}">{{ c.priority }}</span></td>
-                                <td><span class="badge {{ c.status_badge_class }}">{{ c.status }}</span></td>
-                                <td style="font-size: 0.82rem; color: #64748b;">{{ c.created_at.strftime('%Y-%m-%d') }}</td>
+                                <td>
+                                    <span class="priority-tag {{ c.priority_badge_class }}">
+                                        {{ c.priority }}
+                                    </span>
+                                </td>
+                                <td>
+                                    <span class="badge {{ c.status_badge_class }}">
+                                        <span class="badge-dot"></span> {{ c.status }}
+                                    </span>
+                                </td>
+                                <td style="font-size: 0.82rem; color: var(--text-secondary); white-space: nowrap;">
+                                    {{ c.created_at.strftime('%Y-%m-%d') }}
+                                </td>
                                 <td>
                                     <a href="{{ url_for('staff.complaint_detail', complaint_id=c.id) }}" class="btn btn-primary btn-sm">
-                                        <i class="fa-solid fa-pen-to-square"></i> Process
+                                        <i class="fa-solid fa-pen-to-square"></i> Process Ticket
                                     </a>
                                 </td>
                             </tr>
@@ -131,12 +161,12 @@
                 </table>
             </div>
         {% else %}
-            <div style="text-align: center; padding: 40px; color: #64748b;">
-                <i class="fa-solid fa-circle-check" style="font-size: 2.5rem; color: #10b981; margin-bottom: 12px;"></i>
-                <p>No pending complaints assigned to you right now. Great job!</p>
+            <div style="text-align: center; padding: 48px 24px; color: var(--text-secondary);">
+                <i class="fa-solid fa-circle-check" style="font-size: 2.2rem; color: var(--success); margin-bottom: 12px;"></i>
+                <h3 style="font-size: 1.1rem; font-weight: 700; color: var(--text-dark); margin-bottom: 4px;">Queue Clear</h3>
+                <p style="font-size: 0.9rem;">No pending complaint tickets assigned to you right now.</p>
             </div>
         {% endif %}
     </div>
 </div>
 {% endblock %}
-

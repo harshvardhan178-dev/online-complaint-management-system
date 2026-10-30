@@ -1,0 +1,115 @@
+{% extends 'base.html' %}
+
+{% block title %}User Profile & Account Settings{% endblock %}
+{% block header_title %}Profile & Account{% endblock %}
+
+{% block content %}
+<div style="max-width: 900px; margin: 0 auto;">
+    <!-- Profile Overview Card -->
+    <div class="card" style="margin-bottom: 24px;">
+        <div class="card-body" style="padding: 28px 32px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 20px;">
+            <div style="display: flex; align-items: center; gap: 20px;">
+                <div style="width: 72px; height: 72px; border-radius: var(--radius-pill); background: linear-gradient(135deg, #0F766E, #047857); color: #FFFFFF; font-size: 2rem; font-weight: 800; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 12px var(--primary-shadow);">
+                    {{ user.full_name[0]|upper }}
+                </div>
+                <div>
+                    <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 4px;">
+                        <h2 style="font-size: 1.45rem; font-weight: 800; color: var(--text-dark);">{{ user.full_name }}</h2>
+                        {% if user.role == 'admin' %}
+                            <span class="badge badge-warning"><i class="fa-solid fa-crown"></i> Administrator</span>
+                        {% elif user.role == 'staff' %}
+                            <span class="badge badge-info"><i class="fa-solid fa-user-shield"></i> Department Staff</span>
+                        {% else %}
+                            <span class="badge badge-light"><i class="fa-solid fa-user"></i> Standard User</span>
+                        {% endif %}
+                    </div>
+                    <div style="font-size: 0.9rem; color: var(--text-secondary); display: flex; align-items: center; gap: 14px; flex-wrap: wrap;">
+                        <span><i class="fa-regular fa-envelope"></i> {{ user.email }}</span>
+                        {% if user.department %}
+                            <span><i class="fa-solid fa-building"></i> {{ user.department.name }}</span>
+                        {% endif %}
+                        <span><i class="fa-regular fa-calendar-check"></i> Member since {{ user.created_at.strftime('%b %Y') }}</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Mini Summary Metrics -->
+            <div style="display: flex; gap: 20px; border-left: 1px solid var(--border-color); padding-left: 20px;">
+                <div style="text-align: center;">
+                    <div style="font-size: 1.5rem; font-weight: 800; color: var(--primary);">{{ user_stats.total }}</div>
+                    <div style="font-size: 0.72rem; text-transform: uppercase; color: var(--text-secondary); font-weight: 700;">Submitted</div>
+                </div>
+                <div style="text-align: center;">
+                    <div style="font-size: 1.5rem; font-weight: 800; color: var(--success);">{{ user_stats.resolved }}</div>
+                    <div style="font-size: 0.72rem; text-transform: uppercase; color: var(--text-secondary); font-weight: 700;">Resolved</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Edit Profile & Security Details -->
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 24px;">
+        <!-- Personal Information -->
+        <div class="card">
+            <div class="card-header">
+                <h3 class="card-title">
+                    <i class="fa-regular fa-id-badge"></i> Personal Information
+                </h3>
+            </div>
+            <div class="card-body">
+                <form action="{{ url_for('user.profile') }}" method="POST">
+                    <div class="form-group">
+                        <label for="full_name" class="form-label">Full Name</label>
+                        <input type="text" id="full_name" name="full_name" class="form-control" value="{{ user.full_name }}" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="email" class="form-label">Email Address (Read-only)</label>
+                        <input type="email" id="email" class="form-control" value="{{ user.email }}" disabled style="background: #F1F5F9; color: #64748B;">
+                        <div class="form-hint">Institutional email cannot be modified directly.</div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="phone" class="form-label">Contact Phone</label>
+                        <input type="tel" id="phone" name="phone" class="form-control" value="{{ user.phone or '' }}" placeholder="+1 234 567 8900">
+                    </div>
+
+                    <button type="submit" class="btn btn-primary" style="margin-top: 10px;">
+                        <i class="fa-solid fa-floppy-disk"></i> Save Profile Details
+                    </button>
+                </form>
+            </div>
+        </div>
+
+        <!-- Security / Password Change -->
+        <div class="card">
+            <div class="card-header">
+                <h3 class="card-title">
+                    <i class="fa-solid fa-lock"></i> Security & Password
+                </h3>
+            </div>
+            <div class="card-body">
+                <form action="{{ url_for('user.profile') }}" method="POST">
+                    <input type="hidden" name="full_name" value="{{ user.full_name }}">
+                    <input type="hidden" name="phone" value="{{ user.phone or '' }}">
+
+                    <div class="form-group">
+                        <label for="new_password" class="form-label">New Password</label>
+                        <input type="password" id="new_password" name="new_password" class="form-control" placeholder="••••••••" minlength="6">
+                        <div class="form-hint">Leave blank if you do not want to change your password.</div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="confirm_password" class="form-label">Confirm New Password</label>
+                        <input type="password" id="confirm_password" name="confirm_password" class="form-control" placeholder="••••••••">
+                    </div>
+
+                    <button type="submit" class="btn btn-outline" style="margin-top: 10px;">
+                        <i class="fa-solid fa-key"></i> Update Password
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

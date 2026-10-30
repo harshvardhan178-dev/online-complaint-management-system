@@ -1,12 +1,33 @@
-// Main UI interactions
+// Main UI interactions & SaaS animations
 document.addEventListener('DOMContentLoaded', () => {
-    // Mobile sidebar toggle
+    // Mobile sidebar toggle with backdrop
     const toggleBtn = document.getElementById('sidebar-toggle');
     const sidebar = document.querySelector('.sidebar');
-    if (toggleBtn && sidebar) {
-        toggleBtn.addEventListener('click', () => {
-            sidebar.classList.toggle('open');
+    const backdrop = document.getElementById('sidebar-backdrop');
+
+    function openSidebar() {
+        if (sidebar) sidebar.classList.add('open');
+        if (backdrop) backdrop.classList.add('active');
+    }
+
+    function closeSidebar() {
+        if (sidebar) sidebar.classList.remove('open');
+        if (backdrop) backdrop.classList.remove('active');
+    }
+
+    if (toggleBtn) {
+        toggleBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            if (sidebar.classList.contains('open')) {
+                closeSidebar();
+            } else {
+                openSidebar();
+            }
         });
+    }
+
+    if (backdrop) {
+        backdrop.addEventListener('click', closeSidebar);
     }
 
     // Modal open/close triggers
@@ -37,12 +58,13 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    // Auto dismiss alerts after 5 seconds
+    // Auto dismiss alerts after 5 seconds with smooth fade
     document.querySelectorAll('.alert').forEach(alert => {
         setTimeout(() => {
             alert.style.opacity = '0';
-            alert.style.transition = 'opacity 0.5s ease';
-            setTimeout(() => alert.remove(), 500);
+            alert.style.transition = 'opacity 0.4s ease, transform 0.4s ease';
+            alert.style.transform = 'translateY(-6px)';
+            setTimeout(() => alert.remove(), 400);
         }, 5000);
     });
 
@@ -56,8 +78,10 @@ document.addEventListener('DOMContentLoaded', () => {
             if (emailInput && passwordInput) {
                 emailInput.value = email;
                 passwordInput.value = password;
+                // Highlight input momentarily
+                emailInput.style.borderColor = '#0F766E';
+                passwordInput.style.borderColor = '#0F766E';
             }
         });
     });
 });
-

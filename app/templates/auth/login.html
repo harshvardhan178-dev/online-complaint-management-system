@@ -3,19 +3,25 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login — SmartComplaint System</title>
+    <title>Sign In — SmartComplaint Enterprise SaaS</title>
+    <!-- Google Fonts: Inter & Plus Jakarta Sans -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Plus+Jakarta+Sans:wght@600;700;800&display=swap" rel="stylesheet">
+    <!-- Font Awesome Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
 </head>
 <body>
     <div class="auth-wrapper">
         <div class="auth-card">
-            <div style="text-align: center; margin-bottom: 20px;">
-                <div class="brand-icon" style="margin: 0 auto 12px; width: 48px; height: 48px; font-size: 20px;">
-                    <i class="fa-solid fa-shield-halved"></i>
+            <!-- Brand Emblem Header -->
+            <div style="text-align: center; margin-bottom: 24px;">
+                <div class="brand-icon" style="margin: 0 auto 14px; width: 52px; height: 52px; font-size: 22px; border-radius: 14px;">
+                    <i class="fa-solid fa-layer-group"></i>
                 </div>
                 <h2 class="auth-title">Welcome Back</h2>
-                <p class="auth-subtitle">Sign in to SmartComplaint Portal</p>
+                <p class="auth-subtitle">Sign in to your SmartComplaint workspace</p>
             </div>
 
             <!-- Flash alerts -->
@@ -32,18 +38,21 @@
 
             <!-- Quick Demo Credentials Box -->
             <div class="demo-credentials">
-                <div style="font-weight: 600; margin-bottom: 6px; color: #475569;">
-                    <i class="fa-solid fa-key"></i> Quick Demo Login:
+                <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px;">
+                    <span style="font-weight: 700; font-size: 0.78rem; text-transform: uppercase; color: var(--text-secondary); letter-spacing: 0.05em;">
+                        <i class="fa-solid fa-bolt" style="color: var(--primary);"></i> One-Click Demo Access
+                    </span>
+                    <span style="font-size: 0.72rem; color: var(--text-muted);">Auto-fills form</span>
                 </div>
-                <div>
+                <div style="display: flex; flex-wrap: wrap; gap: 6px;">
                     <span class="demo-pill" data-email="admin@smartcomplaint.com" data-password="Admin@123">
-                        <i class="fa-solid fa-crown text-warning"></i> Admin
+                        <i class="fa-solid fa-crown" style="color: #F59E0B;"></i> Admin
                     </span>
                     <span class="demo-pill" data-email="staff@smartcomplaint.com" data-password="Staff@123">
-                        <i class="fa-solid fa-user-shield text-info"></i> Staff
+                        <i class="fa-solid fa-user-shield" style="color: #0F766E;"></i> Staff
                     </span>
                     <span class="demo-pill" data-email="user@smartcomplaint.com" data-password="User@123">
-                        <i class="fa-solid fa-user text-primary"></i> User
+                        <i class="fa-solid fa-user" style="color: #3B82F6;"></i> User
                     </span>
                 </div>
             </div>
@@ -51,27 +60,33 @@
             <form action="{{ url_for('auth.login') }}" method="POST">
                 <div class="form-group">
                     <label for="email" class="form-label">Email Address</label>
-                    <input type="email" id="email" name="email" class="form-control" required placeholder="name@example.com">
+                    <div style="position: relative;">
+                        <input type="email" id="email" name="email" class="form-control" required placeholder="name@organization.com" style="padding-left: 38px;">
+                        <i class="fa-regular fa-envelope" style="position: absolute; left: 14px; top: 50%; transform: translateY(-50%); color: var(--text-muted); font-size: 0.95rem;"></i>
+                    </div>
                 </div>
 
                 <div class="form-group">
                     <label for="password" class="form-label">Password</label>
-                    <input type="password" id="password" name="password" class="form-control" required placeholder="••••••••">
+                    <div style="position: relative;">
+                        <input type="password" id="password" name="password" class="form-control" required placeholder="••••••••" style="padding-left: 38px;">
+                        <i class="fa-solid fa-lock" style="position: absolute; left: 14px; top: 50%; transform: translateY(-50%); color: var(--text-muted); font-size: 0.95rem;"></i>
+                    </div>
                 </div>
 
-                <div class="form-group" style="display: flex; justify-content: space-between; align-items: center;">
-                    <label style="display: flex; align-items: center; gap: 8px; font-size: 0.88rem; cursor: pointer;">
-                        <input type="checkbox" name="remember" value="1"> Remember me
+                <div class="form-group" style="display: flex; justify-content: space-between; align-items: center; margin-top: 14px;">
+                    <label style="display: flex; align-items: center; gap: 8px; font-size: 0.85rem; color: var(--text-secondary); cursor: pointer; user-select: none;">
+                        <input type="checkbox" name="remember" value="1" style="accent-color: var(--primary);"> Keep me signed in
                     </label>
                 </div>
 
-                <button type="submit" class="btn btn-primary" style="width: 100%; justify-content: center; padding: 12px; margin-top: 10px;">
-                    <i class="fa-solid fa-right-to-bracket"></i> Sign In
+                <button type="submit" class="btn btn-primary btn-lg" style="width: 100%; margin-top: 10px;">
+                    <i class="fa-solid fa-right-to-bracket"></i> Sign In to Portal
                 </button>
             </form>
 
-            <div style="text-align: center; margin-top: 24px; font-size: 0.9rem; color: #64748b;">
-                Don't have an account? <a href="{{ url_for('auth.register') }}" style="font-weight: 600;">Create Account</a>
+            <div style="text-align: center; margin-top: 24px; font-size: 0.88rem; color: var(--text-secondary);">
+                Don't have an account yet? <a href="{{ url_for('auth.register') }}" style="font-weight: 700; color: var(--primary);">Create New Account</a>
             </div>
         </div>
     </div>
@@ -79,4 +94,3 @@
     <script src="{{ url_for('static', filename='js/main.js') }}"></script>
 </body>
 </html>
-

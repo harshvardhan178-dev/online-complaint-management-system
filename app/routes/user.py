@@ -236,3 +236,45 @@ def api_check_duplicates():
             'similarity': r['similarity']
         })
     return jsonify({'duplicates': formatted})
+
+@user_bp.route('/profile', methods=['GET', 'POST'])
+@login_required
+def profile():
+    user = db.session.get(Complaint.submitter.property.mapper.class_, session['user_id'])
+    if not user:
+        from app.models import User
+        user = db.session.get(User, session['user_id'])
+
+    if request.method == 'POST':
+        full_name = request.form.get('full_name', '').strip()
+        phone = request.form.get('phone', '').strip()
+        new_password = request.form.get('new_password', '').strip()
+        confirm_password = request.form.get('confirm_password', '').strip()
+
+        if full_name:
+            user.full_name = full_name
+            session['user_name'] = full_name
+
+        user.phone = phone
+
+        if new_password:
+            if len(new_password) < 6:
+                flash('Password must be at least 6 characters long.', 'warning')
+                return redirect(url_for('user.profile'))
+            if new_password != confirm_password:
+                flash('Passwords do not match.', 'danger')
+                return redirect(url_for('user.profile'))
+            user.set_password(new_password)
+            flash('Profile and password updated successfully.', 'success')
+        else:
+            flash('Profile updated successfully.', 'success')
+
+        db.session.commit()
+        return redirect(url_for('user.profile'))
+
+    user_stats = {
+        'total': Complaint.query.filter_by(user_id=user.id).count(),
+        'resolved': Complaint.query.filter_by(user_id=user.id, status='Resolved').count(),
+        'pending': Complaint.query.filter(Complaint.user_id == user.id, Complaint.status.in_(['Submitted', 'Under Review'])).count(),
+    }
+    return render_template('user/profile.html', user=user, user_stats=user_stats)

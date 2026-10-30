@@ -1,80 +1,93 @@
 {% extends 'base.html' %}
 
-{% block title %}Track Complaint Status{% endblock %}
-{% block header_title %}Track Complaint{% endblock %}
+{% block title %}Track Service Ticket{% endblock %}
+{% block header_title %}Ticket Status Tracker{% endblock %}
 
 {% block content %}
-<div style="max-width: 900px; margin: 0 auto;">
+<div style="max-width: 920px; margin: 0 auto;">
     <!-- Search / Lookup Bar -->
     <div class="card" style="margin-bottom: 24px;">
-        <div class="card-body">
-            <form action="{{ url_for('user.track_complaint') }}" method="GET" style="display: flex; gap: 12px;">
-                <input type="text" name="complaint_id" class="form-control" placeholder="Enter Complaint ID (e.g. CMP-2026-00001)" value="{{ query_id or '' }}" required>
+        <div class="card-body" style="padding: 18px 24px;">
+            <form action="{{ url_for('user.track_complaint') }}" method="GET" style="display: flex; gap: 12px; align-items: center;">
+                <div style="position: relative; flex: 1;">
+                    <input type="text" name="complaint_id" class="form-control" placeholder="Search by Ticket Reference ID (e.g. CMP-2026-00001)" value="{{ query_id or '' }}" required style="padding-left: 38px;">
+                    <i class="fa-solid fa-magnifying-glass" style="position: absolute; left: 14px; top: 50%; transform: translateY(-50%); color: var(--text-muted);"></i>
+                </div>
                 <button type="submit" class="btn btn-primary" style="white-space: nowrap;">
-                    <i class="fa-solid fa-magnifying-glass"></i> Track
+                    <i class="fa-solid fa-search"></i> Track Status
                 </button>
             </form>
         </div>
     </div>
 
     {% if complaint %}
-        <!-- Complaint Summary Card -->
+        <!-- Complaint Detail Card -->
         <div class="card">
-            <div class="card-header">
+            <div class="card-header" style="flex-wrap: wrap; gap: 14px;">
                 <div>
-                    <span style="font-size: 0.85rem; color: #64748b; font-weight: 600;">COMPLAINT REFERENCE</span>
-                    <h2 class="card-title" style="font-size: 1.4rem; margin-top: 2px;">
+                    <div style="font-size: 0.75rem; text-transform: uppercase; color: var(--text-secondary); font-weight: 700; letter-spacing: 0.05em;">
+                        Ticket Reference ID
+                    </div>
+                    <h2 class="card-title" style="font-size: 1.35rem; margin-top: 2px;">
                         #{{ complaint.complaint_id }} — {{ complaint.title }}
                     </h2>
                 </div>
                 <div>
-                    <span class="badge {{ complaint.status_badge_class }}" style="font-size: 0.95rem; padding: 6px 14px;">
-                        {{ complaint.status }}
+                    <span class="badge {{ complaint.status_badge_class }}" style="font-size: 0.88rem; padding: 6px 14px;">
+                        <span class="badge-dot"></span> {{ complaint.status }}
                     </span>
                 </div>
             </div>
 
             <div class="card-body">
                 <!-- Meta Info Grid -->
-                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 16px; background: #f8fafc; padding: 16px; border-radius: 8px; margin-bottom: 20px;">
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 14px; background: #F8FAFC; border: 1px solid var(--border-color); padding: 18px; border-radius: var(--radius-md); margin-bottom: 24px;">
                     <div>
-                        <div style="font-size: 0.75rem; color: #64748b; text-transform: uppercase; font-weight: 600;">Category</div>
-                        <div style="font-weight: 600; margin-top: 2px;">{{ complaint.category }}</div>
+                        <div style="font-size: 0.72rem; color: var(--text-secondary); text-transform: uppercase; font-weight: 700;">Category</div>
+                        <div style="font-weight: 600; margin-top: 3px; color: var(--text-dark);">{{ complaint.category }}</div>
                     </div>
                     <div>
-                        <div style="font-size: 0.75rem; color: #64748b; text-transform: uppercase; font-weight: 600;">Priority</div>
-                        <div class="{{ complaint.priority_badge_class }}" style="margin-top: 2px;">{{ complaint.priority }}</div>
+                        <div style="font-size: 0.72rem; color: var(--text-secondary); text-transform: uppercase; font-weight: 700;">Priority</div>
+                        <div class="priority-tag {{ complaint.priority_badge_class }}" style="margin-top: 3px;">
+                            {{ complaint.priority }}
+                        </div>
                     </div>
                     <div>
-                        <div style="font-size: 0.75rem; color: #64748b; text-transform: uppercase; font-weight: 600;">Department</div>
-                        <div style="font-weight: 600; margin-top: 2px;">{{ complaint.department.name if complaint.department else 'Unassigned' }}</div>
+                        <div style="font-size: 0.72rem; color: var(--text-secondary); text-transform: uppercase; font-weight: 700;">Department</div>
+                        <div style="font-weight: 600; margin-top: 3px; color: var(--text-dark);">
+                            {{ complaint.department.name if complaint.department else 'Unassigned' }}
+                        </div>
                     </div>
                     <div>
-                        <div style="font-size: 0.75rem; color: #64748b; text-transform: uppercase; font-weight: 600;">Assigned Staff</div>
-                        <div style="font-weight: 600; margin-top: 2px;">{{ complaint.assignee.full_name if complaint.assignee else 'Unassigned' }}</div>
+                        <div style="font-size: 0.72rem; color: var(--text-secondary); text-transform: uppercase; font-weight: 700;">Assigned Staff</div>
+                        <div style="font-weight: 600; margin-top: 3px; color: var(--text-dark);">
+                            {{ complaint.assignee.full_name if complaint.assignee else 'Awaiting Dispatch' }}
+                        </div>
                     </div>
                     <div>
-                        <div style="font-size: 0.75rem; color: #64748b; text-transform: uppercase; font-weight: 600;">Submitted Date</div>
-                        <div style="font-weight: 600; margin-top: 2px;">{{ complaint.created_at.strftime('%b %d, %Y %H:%M') }}</div>
+                        <div style="font-size: 0.72rem; color: var(--text-secondary); text-transform: uppercase; font-weight: 700;">Submitted Date</div>
+                        <div style="font-weight: 600; margin-top: 3px; color: var(--text-dark);">
+                            {{ complaint.created_at.strftime('%b %d, %Y %H:%M') }}
+                        </div>
                     </div>
                 </div>
 
                 <!-- Description -->
                 <div style="margin-bottom: 24px;">
-                    <h3 style="font-size: 1rem; font-weight: 600; margin-bottom: 8px;">Description</h3>
-                    <div style="white-space: pre-wrap; background: white; border: 1px solid #e2e8f0; padding: 16px; border-radius: 6px; font-size: 0.95rem; line-height: 1.6;">
-                        {{ complaint.description }}
-                    </div>
+                    <h3 style="font-size: 0.95rem; font-weight: 700; color: var(--text-dark); margin-bottom: 8px;">
+                        Issue Description
+                    </h3>
+                    <div style="white-space: pre-wrap; background: #FFFFFF; border: 1px solid var(--border-color); padding: 18px; border-radius: var(--radius-sm); font-size: 0.92rem; line-height: 1.6; color: var(--text-dark);">{{ complaint.description }}</div>
                 </div>
 
                 <!-- Attachment if present -->
                 {% if complaint.attachment %}
-                    <div style="margin-bottom: 24px; padding: 12px 16px; background: #eff6ff; border: 1px solid #bfdbfe; border-radius: 6px; display: flex; align-items: center; justify-content: space-between;">
+                    <div style="margin-bottom: 24px; padding: 14px 18px; background: var(--primary-light); border: 1px solid var(--primary-border); border-radius: var(--radius-sm); display: flex; align-items: center; justify-content: space-between;">
                         <div style="display: flex; align-items: center; gap: 10px;">
-                            <i class="fa-solid fa-paperclip" style="color: #2563eb; font-size: 1.2rem;"></i>
+                            <i class="fa-solid fa-paperclip" style="color: var(--primary); font-size: 1.2rem;"></i>
                             <div>
-                                <span style="font-weight: 600; font-size: 0.9rem;">Attached Document:</span>
-                                <span style="font-size: 0.85rem; color: #475569; margin-left: 6px;">{{ complaint.attachment }}</span>
+                                <span style="font-weight: 700; font-size: 0.88rem; color: var(--text-dark);">Attached File:</span>
+                                <span style="font-size: 0.85rem; color: var(--text-secondary); margin-left: 6px;">{{ complaint.attachment }}</span>
                             </div>
                         </div>
                         <a href="{{ url_for('user.view_upload', filename=complaint.attachment) }}" target="_blank" class="btn btn-outline btn-sm">
@@ -87,8 +100,8 @@
                 {% if complaint.status == 'Rejected' and complaint.rejection_reason %}
                     <div class="alert alert-danger" style="margin-bottom: 24px;">
                         <div>
-                            <strong><i class="fa-solid fa-circle-xmark"></i> Rejection Reason:</strong>
-                            <p style="margin-top: 4px; margin-bottom: 0;">{{ complaint.rejection_reason }}</p>
+                            <strong><i class="fa-solid fa-circle-xmark"></i> Rejection Rationale:</strong>
+                            <p style="margin-top: 6px; margin-bottom: 0;">{{ complaint.rejection_reason }}</p>
                         </div>
                     </div>
                 {% endif %}
@@ -98,15 +111,15 @@
                     <div class="alert alert-success" style="margin-bottom: 24px;">
                         <div>
                             <strong><i class="fa-solid fa-circle-check"></i> Resolution Summary:</strong>
-                            <p style="margin-top: 4px; margin-bottom: 0;">{{ complaint.resolution_note }}</p>
+                            <p style="margin-top: 6px; margin-bottom: 0;">{{ complaint.resolution_note }}</p>
                         </div>
                     </div>
                 {% endif %}
 
                 <!-- Timeline History -->
-                <div style="margin-top: 30px;">
-                    <h3 style="font-size: 1.1rem; font-weight: 600; margin-bottom: 16px;">
-                        <i class="fa-solid fa-timeline"></i> Status Timeline & History
+                <div style="margin-top: 32px;">
+                    <h3 style="font-size: 1.05rem; font-weight: 700; color: var(--text-dark); margin-bottom: 18px; display: flex; align-items: center; gap: 8px;">
+                        <i class="fa-solid fa-timeline" style="color: var(--primary);"></i> Activity & Resolution Timeline
                     </h3>
 
                     <div class="timeline">
@@ -121,8 +134,8 @@
                                         <span class="timeline-date">{{ t.changed_at.strftime('%B %d, %Y at %H:%M') }}</span>
                                     </div>
                                     <p class="timeline-note">{{ t.note }}</p>
-                                    <div style="font-size: 0.78rem; color: #94a3b8; margin-top: 6px;">
-                                        Updated by: {{ t.author.full_name if t.author else 'System' }}
+                                    <div style="font-size: 0.75rem; color: var(--text-muted); margin-top: 8px;">
+                                        Logged by: <strong>{{ t.author.full_name if t.author else 'System Engine' }}</strong>
                                     </div>
                                 </div>
                             </div>
@@ -132,35 +145,37 @@
 
                 <!-- Feedback Section for Resolved Complaints -->
                 {% if complaint.status == 'Resolved' %}
-                    <div class="card" style="margin-top: 30px; border-left: 4px solid var(--success);">
+                    <div class="card" style="margin-top: 28px; border-left: 4px solid var(--success);">
                         <div class="card-header">
-                            <h3 class="card-title"><i class="fa-solid fa-star"></i> Resolution Feedback</h3>
+                            <h3 class="card-title">
+                                <i class="fa-solid fa-star" style="color: #F59E0B;"></i> Resolution Satisfaction Feedback
+                            </h3>
                         </div>
                         <div class="card-body">
                             {% if complaint.feedback %}
                                 <div>
-                                    <div style="font-size: 1.4rem; color: #fbbf24; margin-bottom: 6px;">
+                                    <div style="font-size: 1.5rem; color: #F59E0B; margin-bottom: 8px;">
                                         {% for i in range(complaint.feedback.rating) %}★{% endfor %}
                                         {% for i in range(5 - complaint.feedback.rating) %}☆{% endfor %}
-                                        <span style="font-size: 1rem; color: #475569; font-weight: 600; margin-left: 8px;">
-                                            ({{ complaint.feedback.rating }} / 5)
+                                        <span style="font-size: 0.95rem; color: var(--text-secondary); font-weight: 700; margin-left: 8px;">
+                                            ({{ complaint.feedback.rating }} / 5 Stars)
                                         </span>
                                     </div>
-                                    <p style="font-size: 0.95rem; color: #334155;">
-                                        {{ complaint.feedback.comment or "No additional comments provided." }}
+                                    <p style="font-size: 0.92rem; color: var(--text-dark); line-height: 1.5;">
+                                        {{ complaint.feedback.comment or "No additional written comments provided." }}
                                     </p>
-                                    <div style="font-size: 0.8rem; color: #94a3b8; margin-top: 8px;">
-                                        Submitted on {{ complaint.feedback.submitted_at.strftime('%b %d, %Y') }}
+                                    <div style="font-size: 0.78rem; color: var(--text-muted); margin-top: 8px;">
+                                        Submitted on {{ complaint.feedback.submitted_at.strftime('%B %d, %Y') }}
                                     </div>
                                 </div>
                             {% elif session.get('user_id') == complaint.user_id %}
                                 <form action="{{ url_for('user.give_feedback', complaint_id=complaint.id) }}" method="POST">
-                                    <p style="font-size: 0.9rem; color: #64748b; margin-bottom: 12px;">
-                                        How satisfied are you with the resolution of this complaint?
+                                    <p style="font-size: 0.9rem; color: var(--text-secondary); margin-bottom: 14px;">
+                                        How satisfied are you with the resolution turnaround and quality of service?
                                     </p>
                                     
                                     <input type="hidden" name="rating" id="rating-value" value="5">
-                                    <div class="star-rating" id="star-rating" style="margin-bottom: 14px;">
+                                    <div class="star-rating" id="star-rating" style="margin-bottom: 16px;">
                                         <span class="star selected" data-value="1">★</span>
                                         <span class="star selected" data-value="2">★</span>
                                         <span class="star selected" data-value="3">★</span>
@@ -169,12 +184,12 @@
                                     </div>
 
                                     <div class="form-group">
-                                        <label for="feedback_comment" class="form-label">Comments / Suggestions</label>
-                                        <textarea id="feedback_comment" name="comment" rows="3" class="form-control" placeholder="Share your experience with the resolution..."></textarea>
+                                        <label for="feedback_comment" class="form-label">Comments & Experience</label>
+                                        <textarea id="feedback_comment" name="comment" rows="3" class="form-control" placeholder="Tell us what went well or how we can improve our resolution process..."></textarea>
                                     </div>
 
                                     <button type="submit" class="btn btn-success">
-                                        <i class="fa-solid fa-paper-plane"></i> Submit Feedback
+                                        <i class="fa-solid fa-paper-plane"></i> Submit Review
                                     </button>
                                 </form>
                             {% endif %}
@@ -184,14 +199,18 @@
             </div>
         </div>
     {% elif query_id %}
-        <div class="card" style="text-align: center; padding: 40px;">
-            <i class="fa-solid fa-triangle-exclamation" style="font-size: 2.5rem; color: #f59e0b; margin-bottom: 12px;"></i>
-            <h3>No Complaint Found</h3>
-            <p style="color: #64748b; margin-top: 6px;">
-                We couldn't find any complaint matching ID <strong>"{{ query_id }}"</strong>.
+        <div class="card" style="text-align: center; padding: 48px 24px;">
+            <div style="width: 56px; height: 56px; border-radius: 50%; background: var(--warning-light); color: var(--warning); display: flex; align-items: center; justify-content: center; font-size: 1.5rem; margin: 0 auto 16px;">
+                <i class="fa-solid fa-triangle-exclamation"></i>
+            </div>
+            <h3 style="font-size: 1.2rem; font-weight: 700; color: var(--text-dark); margin-bottom: 6px;">Ticket Not Found</h3>
+            <p style="color: var(--text-secondary); max-width: 420px; margin: 0 auto 18px; font-size: 0.9rem;">
+                No complaint ticket was found matching reference <strong>"{{ query_id }}"</strong>. Please verify the ID or check your history list.
             </p>
+            <a href="{{ url_for('user.complaint_history') }}" class="btn btn-outline btn-sm">
+                Browse My Complaint History
+            </a>
         </div>
     {% endif %}
 </div>
 {% endblock %}
-

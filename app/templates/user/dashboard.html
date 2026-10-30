@@ -1,76 +1,101 @@
 {% extends 'base.html' %}
 
-{% block title %}User Dashboard{% endblock %}
-{% block header_title %}User Dashboard{% endblock %}
+{% block title %}User Workspace Dashboard{% endblock %}
+{% block header_title %}Workspace Overview{% endblock %}
 
 {% block content %}
-<!-- Quick Stat Summary Cards -->
+<!-- SaaS Statistics KPI Cards -->
 <div class="grid-cards">
+    <!-- Total Submitted -->
     <div class="stat-card">
         <div class="stat-header">
-            <span>Total Submitted</span>
-            <div class="stat-icon" style="background: #eff6ff; color: #2563eb;">
+            <span class="stat-title">Total Submitted</span>
+            <div class="stat-icon icon-teal">
                 <i class="fa-solid fa-folder-open"></i>
             </div>
         </div>
         <div class="stat-value">{{ stats.total }}</div>
+        <div class="stat-footer">
+            <i class="fa-solid fa-arrow-trend-up text-success"></i>
+            <span>All lifetime tickets logged</span>
+        </div>
     </div>
 
+    <!-- Under Review / Pending -->
     <div class="stat-card">
         <div class="stat-header">
-            <span>Under Review / Pending</span>
-            <div class="stat-icon" style="background: #fffbeb; color: #f59e0b;">
+            <span class="stat-title">Under Review / Pending</span>
+            <div class="stat-icon icon-amber">
                 <i class="fa-solid fa-hourglass-half"></i>
             </div>
         </div>
         <div class="stat-value">{{ stats.pending }}</div>
+        <div class="stat-footer">
+            <i class="fa-regular fa-clock" style="color: var(--warning);"></i>
+            <span>Awaiting triage or review</span>
+        </div>
     </div>
 
+    <!-- In Progress -->
     <div class="stat-card">
         <div class="stat-header">
-            <span>In Progress</span>
-            <div class="stat-icon" style="background: #f3e8ff; color: #8b5cf6;">
-                <i class="fa-solid fa-spinner"></i>
+            <span class="stat-title">In Progress</span>
+            <div class="stat-icon icon-indigo">
+                <i class="fa-solid fa-screwdriver-wrench"></i>
             </div>
         </div>
         <div class="stat-value">{{ stats.in_progress }}</div>
+        <div class="stat-footer">
+            <i class="fa-solid fa-rotate" style="color: #6D28D9;"></i>
+            <span>Staff actively working on resolution</span>
+        </div>
     </div>
 
+    <!-- Resolved -->
     <div class="stat-card">
         <div class="stat-header">
-            <span>Resolved</span>
-            <div class="stat-icon" style="background: #ecfdf5; color: #10b981;">
+            <span class="stat-title">Resolved</span>
+            <div class="stat-icon icon-emerald">
                 <i class="fa-solid fa-circle-check"></i>
             </div>
         </div>
         <div class="stat-value">{{ stats.resolved }}</div>
-    </div>
-</div>
-
-<!-- Quick Actions Banner -->
-<div class="card" style="background: linear-gradient(135deg, #2563eb, #1d4ed8); color: white; border: none; margin-bottom: 24px;">
-    <div class="card-body" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px;">
-        <div>
-            <h3 style="font-size: 1.3rem; margin-bottom: 4px;">Need help with a facility or service?</h3>
-            <p style="opacity: 0.9; font-size: 0.92rem;">File a new complaint or track existing resolutions in real-time.</p>
-        </div>
-        <div style="display: flex; gap: 12px;">
-            <a href="{{ url_for('user.submit_complaint') }}" class="btn" style="background: white; color: #1e40af;">
-                <i class="fa-solid fa-plus"></i> File Complaint
-            </a>
-            <a href="{{ url_for('user.track_complaint') }}" class="btn" style="background: rgba(255,255,255,0.2); color: white; border: 1px solid rgba(255,255,255,0.3);">
-                <i class="fa-solid fa-magnifying-glass"></i> Track by ID
-            </a>
+        <div class="stat-footer">
+            <i class="fa-solid fa-check-double text-success"></i>
+            <span>Successfully closed & verified</span>
         </div>
     </div>
 </div>
 
-<div style="display: grid; grid-template-columns: 2fr 1fr; gap: 24px;">
-    <!-- Recent Complaints -->
+<!-- Modern SaaS Hero Quick Action Banner -->
+<div class="hero-banner">
+    <div>
+        <h2 class="hero-title">Experience an Issue or Disruption?</h2>
+        <p class="hero-desc">
+            Submit a detailed service ticket with attachments, track live resolution timelines, or search existing institutional reports.
+        </p>
+    </div>
+    <div class="hero-actions">
+        <a href="{{ url_for('user.submit_complaint') }}" class="btn btn-primary" style="background: #0F766E; border: 1px solid rgba(255, 255, 255, 0.2); box-shadow: 0 4px 14px rgba(15, 118, 110, 0.4);">
+            <i class="fa-solid fa-plus-circle"></i> File New Complaint
+        </a>
+        <a href="{{ url_for('user.track_complaint') }}" class="btn btn-outline" style="background: rgba(255, 255, 255, 0.12); color: #FFFFFF; border-color: rgba(255, 255, 255, 0.25);">
+            <i class="fa-solid fa-magnifying-glass"></i> Track by Ticket ID
+        </a>
+    </div>
+</div>
+
+<!-- Main Split Content Grid -->
+<div style="display: grid; grid-template-columns: 2fr 1fr; gap: 24px; align-items: start;">
+    <!-- Recent Complaints Table -->
     <div class="card">
         <div class="card-header">
-            <h2 class="card-title"><i class="fa-solid fa-clock-rotate-left"></i> Recent Submissions</h2>
-            <a href="{{ url_for('user.complaint_history') }}" class="btn btn-outline btn-sm">View All</a>
+            <h2 class="card-title">
+                <i class="fa-solid fa-clock-rotate-left"></i> Recent Submissions
+            </h2>
+            <a href="{{ url_for('user.complaint_history') }}" class="btn btn-outline btn-sm">
+                View All History <i class="fa-solid fa-arrow-right" style="font-size: 0.75rem;"></i>
+            </a>
         </div>
         <div class="card-body" style="padding: 0;">
             {% if recent_complaints %}
@@ -78,8 +103,8 @@
                     <table class="table">
                         <thead>
                             <tr>
-                                <th>Complaint ID</th>
-                                <th>Title</th>
+                                <th>Ticket ID</th>
+                                <th>Summary</th>
                                 <th>Category</th>
                                 <th>Status</th>
                                 <th>Date</th>
@@ -90,18 +115,24 @@
                             {% for c in recent_complaints %}
                                 <tr>
                                     <td>
-                                        <a href="{{ url_for('user.track_complaint', complaint_id=c.complaint_id) }}" style="font-weight: 600;">
+                                        <a href="{{ url_for('user.track_complaint', complaint_id=c.complaint_id) }}" style="font-weight: 700; color: var(--primary);">
                                             #{{ c.complaint_id }}
                                         </a>
                                     </td>
                                     <td>
-                                        <div style="font-weight: 500; max-width: 220px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+                                        <div style="font-weight: 600; color: var(--text-dark); max-width: 220px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" title="{{ c.title }}">
                                             {{ c.title }}
                                         </div>
                                     </td>
                                     <td><span class="badge badge-light">{{ c.category }}</span></td>
-                                    <td><span class="badge {{ c.status_badge_class }}">{{ c.status }}</span></td>
-                                    <td style="font-size: 0.85rem; color: #64748b;">{{ c.created_at.strftime('%b %d, %Y') }}</td>
+                                    <td>
+                                        <span class="badge {{ c.status_badge_class }}">
+                                            <span class="badge-dot"></span> {{ c.status }}
+                                        </span>
+                                    </td>
+                                    <td style="font-size: 0.85rem; color: var(--text-secondary); white-space: nowrap;">
+                                        {{ c.created_at.strftime('%b %d, %Y') }}
+                                    </td>
                                     <td>
                                         <a href="{{ url_for('user.track_complaint', complaint_id=c.complaint_id) }}" class="btn btn-outline btn-sm">
                                             Track
@@ -113,47 +144,54 @@
                     </table>
                 </div>
             {% else %}
-                <div style="text-align: center; padding: 40px; color: #64748b;">
-                    <i class="fa-regular fa-clipboard" style="font-size: 2.5rem; margin-bottom: 12px; opacity: 0.5;"></i>
-                    <p>No complaints submitted yet.</p>
-                    <a href="{{ url_for('user.submit_complaint') }}" class="btn btn-primary btn-sm" style="margin-top: 10px;">
-                        File Your First Complaint
+                <div style="text-align: center; padding: 48px 24px; color: var(--text-secondary);">
+                    <div style="width: 56px; height: 56px; border-radius: 50%; background: #F1F5F9; color: var(--text-muted); display: flex; align-items: center; justify-content: center; font-size: 1.5rem; margin: 0 auto 14px;">
+                        <i class="fa-regular fa-clipboard"></i>
+                    </div>
+                    <h3 style="font-size: 1.05rem; font-weight: 700; color: var(--text-dark); margin-bottom: 4px;">No complaints recorded</h3>
+                    <p style="font-size: 0.88rem; max-width: 320px; margin: 0 auto 16px;">You haven't logged any complaints yet. When you submit an issue, its live progress will appear here.</p>
+                    <a href="{{ url_for('user.submit_complaint') }}" class="btn btn-primary btn-sm">
+                        <i class="fa-solid fa-plus"></i> File Your First Complaint
                     </a>
                 </div>
             {% endif %}
         </div>
     </div>
 
-    <!-- In-App Notifications Feed -->
+    <!-- Latest Updates Feed -->
     <div class="card">
         <div class="card-header">
-            <h2 class="card-title"><i class="fa-solid fa-bell"></i> Latest Updates</h2>
-            <a href="{{ url_for('user.notifications') }}" class="btn btn-outline btn-sm">All</a>
+            <h2 class="card-title">
+                <i class="fa-solid fa-bell"></i> Latest Activity
+            </h2>
+            <a href="{{ url_for('user.notifications') }}" class="btn btn-outline btn-sm">View All</a>
         </div>
         <div class="card-body">
             {% if notifications %}
                 <ul style="list-style: none;">
                     {% for n in notifications %}
-                        <li style="padding: 10px 0; border-bottom: 1px solid #f1f5f9; display: flex; gap: 10px;">
-                            <i class="fa-solid fa-circle-info" style="color: #3b82f6; margin-top: 3px;"></i>
-                            <div>
-                                <div style="font-size: 0.88rem; color: #1e293b; {% if not n.is_read %}font-weight: 600;{% endif %}">
+                        <li style="padding: 12px 0; border-bottom: 1px solid var(--border-color); display: flex; gap: 12px; align-items: flex-start;">
+                            <div style="width: 28px; height: 28px; border-radius: var(--radius-sm); background: var(--primary-light); color: var(--primary); display: flex; align-items: center; justify-content: center; font-size: 0.82rem; flex-shrink: 0; margin-top: 2px;">
+                                <i class="fa-solid fa-circle-dot"></i>
+                            </div>
+                            <div style="min-width: 0; flex: 1;">
+                                <div style="font-size: 0.88rem; color: var(--text-dark); {% if not n.is_read %}font-weight: 600;{% endif %} line-height: 1.4;">
                                     {{ n.message }}
                                 </div>
-                                <div style="font-size: 0.75rem; color: #94a3b8; margin-top: 4px;">
-                                    {{ n.created_at.strftime('%b %d, %H:%M') }}
+                                <div style="font-size: 0.75rem; color: var(--text-muted); margin-top: 4px;">
+                                    {{ n.created_at.strftime('%b %d at %H:%M') }}
                                 </div>
                             </div>
                         </li>
                     {% endfor %}
                 </ul>
             {% else %}
-                <div style="text-align: center; padding: 30px; color: #94a3b8; font-size: 0.9rem;">
-                    No recent notifications.
+                <div style="text-align: center; padding: 36px 16px; color: var(--text-secondary); font-size: 0.88rem;">
+                    <i class="fa-regular fa-bell" style="font-size: 1.8rem; color: var(--text-muted); margin-bottom: 8px; opacity: 0.6;"></i>
+                    <p>No recent alerts or status changes.</p>
                 </div>
             {% endif %}
         </div>
     </div>
 </div>
 {% endblock %}
-

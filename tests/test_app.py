@@ -73,7 +73,7 @@ class SmartComplaintTestCase(unittest.TestCase):
         self.assertEqual(len(c.timeline), 1)
 
         # Notification created
-        notif = Notification.query.filter_by(user_id=demo_user.id).first()
+        notif = Notification.query.filter_by(user_id=demo_user.id, complaint_id=c.id).first()
         self.assertIsNotNone(notif)
         self.assertIn(c.complaint_id, notif.message)
 

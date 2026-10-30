@@ -1,39 +1,51 @@
 {% extends 'base.html' %}
 
-{% block title %}System Analytics & Insights{% endblock %}
-{% block header_title %}Analytics & Performance Trends{% endblock %}
+{% block title %}Operational Analytics & Insights{% endblock %}
+{% block header_title %}Institutional Intelligence & KPI{% endblock %}
 
 {% block content %}
-<!-- KPI summary -->
+<!-- Executive Analytics KPI Cards -->
 <div class="grid-cards">
     <div class="stat-card">
         <div class="stat-header">
-            <span>Overall Submissions</span>
-            <div class="stat-icon" style="background: #eff6ff; color: #2563eb;">
-                <i class="fa-solid fa-folder-open"></i>
+            <span class="stat-title">Overall Intake Volume</span>
+            <div class="stat-icon icon-teal">
+                <i class="fa-solid fa-layer-group"></i>
             </div>
         </div>
         <div class="stat-value">{{ analytics.total }}</div>
+        <div class="stat-footer">
+            <i class="fa-solid fa-server text-success"></i>
+            <span>All registered service tickets</span>
+        </div>
     </div>
 
     <div class="stat-card">
         <div class="stat-header">
-            <span>Overall Resolution Rate</span>
-            <div class="stat-icon" style="background: #ecfdf5; color: #10b981;">
+            <span class="stat-title">System Resolution Rate</span>
+            <div class="stat-icon icon-emerald">
                 <i class="fa-solid fa-chart-line"></i>
             </div>
         </div>
         <div class="stat-value">{{ analytics.resolution_rate }}%</div>
+        <div class="stat-footer">
+            <i class="fa-solid fa-circle-check text-success"></i>
+            <span>Tickets marked as resolved</span>
+        </div>
     </div>
 
     <div class="stat-card">
         <div class="stat-header">
-            <span>Average Satisfaction</span>
-            <div class="stat-icon" style="background: #fefce8; color: #eab308;">
+            <span class="stat-title">User CSAT Score</span>
+            <div class="stat-icon icon-amber">
                 <i class="fa-solid fa-star"></i>
             </div>
         </div>
-        <div class="stat-value">{{ analytics.avg_rating }} / 5</div>
+        <div class="stat-value">{{ analytics.avg_rating }} <span style="font-size: 1.1rem; color: var(--text-muted); font-weight: 500;">/ 5</span></div>
+        <div class="stat-footer">
+            <i class="fa-solid fa-comments text-success"></i>
+            <span>Aggregated post-resolution reviews</span>
+        </div>
     </div>
 </div>
 
@@ -41,7 +53,9 @@
 <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin-bottom: 24px;">
     <div class="card">
         <div class="card-header">
-            <h2 class="card-title"><i class="fa-solid fa-chart-pie"></i> Status Distribution</h2>
+            <h2 class="card-title">
+                <i class="fa-solid fa-chart-pie"></i> Status Distribution
+            </h2>
         </div>
         <div class="card-body" style="height: 300px; position: relative;">
             <canvas id="statusChart"></canvas>
@@ -50,7 +64,9 @@
 
     <div class="card">
         <div class="card-header">
-            <h2 class="card-title"><i class="fa-solid fa-signal"></i> Priority Distribution</h2>
+            <h2 class="card-title">
+                <i class="fa-solid fa-signal"></i> Priority Severity Distribution
+            </h2>
         </div>
         <div class="card-body" style="height: 300px; position: relative;">
             <canvas id="priorityChart"></canvas>
@@ -60,7 +76,9 @@
 
 <div class="card">
     <div class="card-header">
-        <h2 class="card-title"><i class="fa-solid fa-chart-line"></i> 6-Month Intake Volume Trend</h2>
+        <h2 class="card-title">
+            <i class="fa-solid fa-chart-line"></i> 6-Month Ticket Velocity & Intake Trend
+        </h2>
     </div>
     <div class="card-body" style="height: 320px; position: relative;">
         <canvas id="trendChart"></canvas>
@@ -74,4 +92,3 @@
     initAnalyticsCharts(analyticsData);
 </script>
 {% endblock %}
-

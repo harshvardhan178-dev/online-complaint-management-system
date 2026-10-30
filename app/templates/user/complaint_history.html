@@ -1,20 +1,23 @@
 {% extends 'base.html' %}
 
 {% block title %}My Complaint History{% endblock %}
-{% block header_title %}My Complaint History{% endblock %}
+{% block header_title %}Complaint Log & History{% endblock %}
 
 {% block content %}
-<!-- Filter & Search Toolbar -->
+<!-- Modern Filter & Search Toolbar -->
 <div class="card" style="margin-bottom: 24px;">
-    <div class="card-body">
-        <form action="{{ url_for('user.complaint_history') }}" method="GET" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)) 120px; gap: 14px; align-items: end;">
+    <div class="card-body" style="padding: 20px 24px;">
+        <form action="{{ url_for('user.complaint_history') }}" method="GET" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)) 110px; gap: 14px; align-items: end;">
             <div class="form-group" style="margin-bottom: 0;">
-                <label class="form-label" style="font-size: 0.8rem;">Search</label>
-                <input type="text" name="search" class="form-control" placeholder="Search keywords..." value="{{ search }}">
+                <label class="form-label" style="font-size: 0.78rem; text-transform: uppercase; color: var(--text-secondary); letter-spacing: 0.04em;">Search Query</label>
+                <div style="position: relative;">
+                    <input type="text" name="search" class="form-control" placeholder="Search keywords..." value="{{ search }}" style="padding-left: 36px;">
+                    <i class="fa-solid fa-search" style="position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: var(--text-muted); font-size: 0.85rem;"></i>
+                </div>
             </div>
 
             <div class="form-group" style="margin-bottom: 0;">
-                <label class="form-label" style="font-size: 0.8rem;">Status</label>
+                <label class="form-label" style="font-size: 0.78rem; text-transform: uppercase; color: var(--text-secondary); letter-spacing: 0.04em;">Status</label>
                 <select name="status" class="form-select">
                     <option value="">All Statuses</option>
                     <option value="Submitted" {% if status_filter == 'Submitted' %}selected{% endif %}>Submitted</option>
@@ -27,7 +30,7 @@
             </div>
 
             <div class="form-group" style="margin-bottom: 0;">
-                <label class="form-label" style="font-size: 0.8rem;">Category</label>
+                <label class="form-label" style="font-size: 0.78rem; text-transform: uppercase; color: var(--text-secondary); letter-spacing: 0.04em;">Category</label>
                 <select name="category" class="form-select">
                     <option value="">All Categories</option>
                     {% for cat in categories %}
@@ -37,7 +40,7 @@
             </div>
 
             <div class="form-group" style="margin-bottom: 0;">
-                <label class="form-label" style="font-size: 0.8rem;">Priority</label>
+                <label class="form-label" style="font-size: 0.78rem; text-transform: uppercase; color: var(--text-secondary); letter-spacing: 0.04em;">Priority</label>
                 <select name="priority" class="form-select">
                     <option value="">All Priorities</option>
                     <option value="Low" {% if priority_filter == 'Low' %}selected{% endif %}>Low</option>
@@ -47,8 +50,8 @@
                 </select>
             </div>
 
-            <div style="display: flex; gap: 8px;">
-                <button type="submit" class="btn btn-primary" style="flex: 1; justify-content: center;">
+            <div>
+                <button type="submit" class="btn btn-primary" style="width: 100%; height: 42px;">
                     <i class="fa-solid fa-filter"></i> Filter
                 </button>
             </div>
@@ -60,10 +63,12 @@
 <div class="card">
     <div class="card-header">
         <h2 class="card-title">
-            <i class="fa-solid fa-list"></i> Complaints ({{ complaints|length }})
+            <i class="fa-solid fa-list"></i> Complaint Records ({{ complaints|length }})
         </h2>
         {% if search or status_filter or category_filter or priority_filter %}
-            <a href="{{ url_for('user.complaint_history') }}" class="btn btn-outline btn-sm">Clear Filters</a>
+            <a href="{{ url_for('user.complaint_history') }}" class="btn btn-outline btn-sm">
+                <i class="fa-solid fa-xmark"></i> Reset Filters
+            </a>
         {% endif %}
     </div>
     <div class="card-body" style="padding: 0;">
@@ -72,8 +77,8 @@
                 <table class="table">
                     <thead>
                         <tr>
-                            <th>Complaint ID</th>
-                            <th>Title</th>
+                            <th>Ticket ID</th>
+                            <th>Summary</th>
                             <th>Category</th>
                             <th>Priority</th>
                             <th>Status</th>
@@ -86,20 +91,32 @@
                         {% for c in complaints %}
                             <tr>
                                 <td>
-                                    <a href="{{ url_for('user.track_complaint', complaint_id=c.complaint_id) }}" style="font-weight: 600;">
+                                    <a href="{{ url_for('user.track_complaint', complaint_id=c.complaint_id) }}" style="font-weight: 700; color: var(--primary);">
                                         #{{ c.complaint_id }}
                                     </a>
                                 </td>
                                 <td>
-                                    <div style="font-weight: 500; max-width: 200px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+                                    <div style="font-weight: 600; color: var(--text-dark); max-width: 220px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" title="{{ c.title }}">
                                         {{ c.title }}
                                     </div>
                                 </td>
                                 <td><span class="badge badge-light">{{ c.category }}</span></td>
-                                <td><span class="{{ c.priority_badge_class }}">{{ c.priority }}</span></td>
-                                <td><span class="badge {{ c.status_badge_class }}">{{ c.status }}</span></td>
-                                <td style="font-size: 0.88rem; color: #475569;">{{ c.department.name if c.department else 'Unassigned' }}</td>
-                                <td style="font-size: 0.85rem; color: #64748b;">{{ c.created_at.strftime('%Y-%m-%d') }}</td>
+                                <td>
+                                    <span class="priority-tag {{ c.priority_badge_class }}">
+                                        {{ c.priority }}
+                                    </span>
+                                </td>
+                                <td>
+                                    <span class="badge {{ c.status_badge_class }}">
+                                        <span class="badge-dot"></span> {{ c.status }}
+                                    </span>
+                                </td>
+                                <td style="font-size: 0.88rem; color: var(--text-secondary);">
+                                    {{ c.department.name if c.department else 'Unassigned' }}
+                                </td>
+                                <td style="font-size: 0.85rem; color: var(--text-secondary); white-space: nowrap;">
+                                    {{ c.created_at.strftime('%Y-%m-%d') }}
+                                </td>
                                 <td>
                                     <a href="{{ url_for('user.track_complaint', complaint_id=c.complaint_id) }}" class="btn btn-outline btn-sm">
                                         Track
@@ -111,11 +128,11 @@
                 </table>
             </div>
         {% else %}
-            <div style="text-align: center; padding: 40px; color: #64748b;">
-                <p>No complaints matching the selected filters.</p>
+            <div style="text-align: center; padding: 48px 24px; color: var(--text-secondary);">
+                <i class="fa-regular fa-folder-open" style="font-size: 2.2rem; color: var(--text-muted); margin-bottom: 12px; opacity: 0.6;"></i>
+                <p style="font-size: 0.95rem;">No complaint tickets match the selected filter parameters.</p>
             </div>
         {% endif %}
     </div>
 </div>
 {% endblock %}
-

@@ -1,16 +1,18 @@
 {% extends 'base.html' %}
 
-{% block title %}Users & Departments Management{% endblock %}
-{% block header_title %}Users & Departments{% endblock %}
+{% block title %}Users & Organization Units{% endblock %}
+{% block header_title %}User & Department Roster{% endblock %}
 
 {% block content %}
 <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 24px; align-items: start;">
     <!-- Users Section -->
     <div class="card">
         <div class="card-header">
-            <h2 class="card-title"><i class="fa-solid fa-users"></i> User Accounts ({{ users|length }})</h2>
+            <h2 class="card-title">
+                <i class="fa-solid fa-users"></i> User Accounts ({{ users|length }})
+            </h2>
             <form action="{{ url_for('admin.users') }}" method="GET" style="display: flex; gap: 8px;">
-                <input type="text" name="search" class="form-control" placeholder="Search user..." value="{{ search or '' }}" style="width: 160px; padding: 6px 10px; font-size: 0.85rem;">
+                <input type="text" name="search" class="form-control" placeholder="Search name/email..." value="{{ search or '' }}" style="width: 170px; padding: 6px 12px; font-size: 0.85rem;">
                 <select name="role" class="form-select" onchange="this.form.submit()" style="width: 110px; padding: 6px 10px; font-size: 0.85rem;">
                     <option value="">All Roles</option>
                     <option value="admin" {% if role_filter == 'admin' %}selected{% endif %}>Admin</option>
@@ -24,7 +26,7 @@
                 <table class="table">
                     <thead>
                         <tr>
-                            <th>User</th>
+                            <th>User Name & Email</th>
                             <th>Role</th>
                             <th>Department</th>
                             <th>Status</th>
@@ -35,8 +37,8 @@
                         {% for u in users %}
                             <tr>
                                 <td>
-                                    <div style="font-weight: 600;">{{ u.full_name }}</div>
-                                    <div style="font-size: 0.8rem; color: #64748b;">{{ u.email }}</div>
+                                    <div style="font-weight: 600; color: var(--text-dark);">{{ u.full_name }}</div>
+                                    <div style="font-size: 0.8rem; color: var(--text-secondary);">{{ u.email }}</div>
                                 </td>
                                 <td>
                                     {% if u.role == 'admin' %}
@@ -47,27 +49,27 @@
                                         <span class="badge badge-light"><i class="fa-solid fa-user"></i> User</span>
                                     {% endif %}
                                 </td>
-                                <td style="font-size: 0.88rem; color: #475569;">
+                                <td style="font-size: 0.88rem; color: var(--text-secondary);">
                                     {{ u.department.name if u.department else '—' }}
                                 </td>
                                 <td>
                                     {% if u.is_active %}
-                                        <span class="badge badge-success">Active</span>
+                                        <span class="badge badge-success"><span class="badge-dot"></span> Active</span>
                                     {% else %}
-                                        <span class="badge badge-danger">Deactivated</span>
+                                        <span class="badge badge-danger"><span class="badge-dot"></span> Inactive</span>
                                     {% endif %}
                                 </td>
                                 <td>
                                     <div style="display: flex; gap: 6px;">
                                         <!-- Edit Modal Trigger -->
-                                        <button class="btn btn-outline btn-sm" data-modal-target="modal-edit-user-{{ u.id }}" title="Edit Role & Dept">
+                                        <button class="btn btn-outline btn-sm" data-modal-target="modal-edit-user-{{ u.id }}" title="Edit Role & Unit">
                                             <i class="fa-solid fa-user-pen"></i>
                                         </button>
                                         
                                         <!-- Toggle Status Form -->
                                         {% if u.id != session.get('user_id') %}
                                             <form action="{{ url_for('admin.toggle_user_status', user_id=u.id) }}" method="POST" style="display: inline;" onsubmit="return confirm('Toggle active status for {{ u.full_name }}?');">
-                                                <button type="submit" class="btn btn-sm {% if u.is_active %}btn-outline{% else %}btn-success{% endif %}" title="{% if u.is_active %}Deactivate{% else %}Activate{% endif %}">
+                                                <button type="submit" class="btn btn-sm {% if u.is_active %}btn-outline{% else %}btn-success{% endif %}" title="{% if u.is_active %}Deactivate Account{% else %}Activate Account{% endif %}">
                                                     <i class="fa-solid {% if u.is_active %}fa-ban text-danger{% else %}fa-check{% endif %}"></i>
                                                 </button>
                                             </form>
@@ -78,21 +80,23 @@
                                     <div id="modal-edit-user-{{ u.id }}" class="modal-overlay">
                                         <div class="modal-dialog">
                                             <div class="modal-header">
-                                                <h3 style="font-size: 1.1rem; font-weight: 600;">Edit User: {{ u.full_name }}</h3>
+                                                <h3 style="font-size: 1.1rem; font-weight: 700; color: var(--text-dark);">
+                                                    Edit Account: {{ u.full_name }}
+                                                </h3>
                                                 <button type="button" class="modal-close">&times;</button>
                                             </div>
                                             <form action="{{ url_for('admin.update_user', user_id=u.id) }}" method="POST">
                                                 <div class="modal-body">
                                                     <div class="form-group">
-                                                        <label class="form-label">Role</label>
+                                                        <label class="form-label">System Role</label>
                                                         <select name="role" class="form-select">
-                                                            <option value="user" {% if u.role == 'user' %}selected{% endif %}>User</option>
-                                                            <option value="staff" {% if u.role == 'staff' %}selected{% endif %}>Staff</option>
-                                                            <option value="admin" {% if u.role == 'admin' %}selected{% endif %}>Admin</option>
+                                                            <option value="user" {% if u.role == 'user' %}selected{% endif %}>Standard User</option>
+                                                            <option value="staff" {% if u.role == 'staff' %}selected{% endif %}>Department Staff</option>
+                                                            <option value="admin" {% if u.role == 'admin' %}selected{% endif %}>Administrator</option>
                                                         </select>
                                                     </div>
                                                     <div class="form-group">
-                                                        <label class="form-label">Department (For Staff)</label>
+                                                        <label class="form-label">Assigned Department (For Staff)</label>
                                                         <select name="department_id" class="form-select">
                                                             <option value="">None / Not Applicable</option>
                                                             {% for d in departments %}
@@ -103,7 +107,7 @@
                                                 </div>
                                                 <div class="modal-footer">
                                                     <button type="button" class="btn btn-secondary modal-close">Cancel</button>
-                                                    <button type="submit" class="btn btn-primary">Update</button>
+                                                    <button type="submit" class="btn btn-primary">Update User</button>
                                                 </div>
                                             </form>
                                         </div>
@@ -121,20 +125,22 @@
     <div>
         <div class="card" style="margin-bottom: 24px;">
             <div class="card-header">
-                <h2 class="card-title"><i class="fa-solid fa-building"></i> Add Department</h2>
+                <h2 class="card-title">
+                    <i class="fa-solid fa-building-circle-plus"></i> Add Department
+                </h2>
             </div>
             <div class="card-body">
                 <form action="{{ url_for('admin.add_department') }}" method="POST">
                     <div class="form-group">
                         <label class="form-label">Department Name *</label>
-                        <input type="text" name="name" class="form-control" required placeholder="e.g., Electrical Works">
+                        <input type="text" name="name" class="form-control" required placeholder="e.g. Electrical & Utilities">
                     </div>
                     <div class="form-group">
                         <label class="form-label">Description</label>
-                        <textarea name="description" rows="2" class="form-control" placeholder="Brief description of responsibilities..."></textarea>
+                        <textarea name="description" rows="2" class="form-control" placeholder="Brief scope of responsibilities..."></textarea>
                     </div>
-                    <button type="submit" class="btn btn-primary" style="width: 100%; justify-content: center;">
-                        <i class="fa-solid fa-plus"></i> Add Department
+                    <button type="submit" class="btn btn-primary" style="width: 100%;">
+                        <i class="fa-solid fa-plus"></i> Create Department
                     </button>
                 </form>
             </div>
@@ -142,18 +148,22 @@
 
         <div class="card">
             <div class="card-header">
-                <h2 class="card-title"><i class="fa-solid fa-list-ul"></i> Existing Departments</h2>
+                <h2 class="card-title">
+                    <i class="fa-solid fa-building"></i> Active Units ({{ departments|length }})
+                </h2>
             </div>
             <div class="card-body" style="padding: 0;">
                 <ul style="list-style: none;">
                     {% for d in departments %}
                         <li style="padding: 14px 18px; border-bottom: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center;">
                             <div>
-                                <div style="font-weight: 600;">{{ d.name }}</div>
-                                <div style="font-size: 0.8rem; color: #64748b;">{{ d.description or 'No description' }}</div>
+                                <div style="font-weight: 600; color: var(--text-dark);">{{ d.name }}</div>
+                                <div style="font-size: 0.8rem; color: var(--text-secondary); max-width: 190px;">
+                                    {{ d.description or 'Institutional unit' }}
+                                </div>
                             </div>
-                            <span class="badge badge-light" title="Assigned complaints count">
-                                {{ d.complaints.count() }} tasks
+                            <span class="badge badge-light" title="Active tickets count">
+                                {{ d.complaints.count() }} tickets
                             </span>
                         </li>
                     {% endfor %}
@@ -163,4 +173,3 @@
     </div>
 </div>
 {% endblock %}
-
