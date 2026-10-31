@@ -14,8 +14,8 @@ def generate_csv_report(complaints) -> io.StringIO:
     
     # Headers
     writer.writerow([
-        'Complaint ID', 'Title', 'Category', 'Priority', 'Status',
-        'Submitted By', 'Submitter Email', 'Department', 'Assigned To',
+        'Complaint ID', 'Title', 'Category', 'Subcategory', 'City', 'Area', 'Priority', 'Status',
+        'Submitted By', 'Submitter Email', 'Contact Phone', 'Department', 'Assigned To',
         'Submitted Date', 'Last Updated', 'Resolution Note', 'Rating'
     ])
 
@@ -24,10 +24,14 @@ def generate_csv_report(complaints) -> io.StringIO:
             c.complaint_id,
             c.title,
             c.category,
+            c.subcategory or 'N/A',
+            c.city or 'N/A',
+            c.area or 'N/A',
             c.priority,
             c.status,
             c.submitter.full_name if c.submitter else 'N/A',
             c.submitter.email if c.submitter else 'N/A',
+            c.contact_phone or 'N/A',
             c.department.name if c.department else 'Unassigned',
             c.assignee.full_name if c.assignee else 'Unassigned',
             c.created_at.strftime('%Y-%m-%d %H:%M:%S'),

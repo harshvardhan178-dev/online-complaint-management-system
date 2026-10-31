@@ -2,6 +2,7 @@ from datetime import datetime
 from flask import Blueprint, render_template, redirect, url_for, request, flash, session, send_file, jsonify, Response
 from app.models import db, Complaint, User, Department, StatusTimeline, Feedback
 from app.routes.auth import admin_required
+from app.routes.user import CIVIC_CATEGORIES
 from app.services.complaint_service import update_status, assign_complaint
 from app.services.report_service import generate_csv_report, generate_pdf_report, get_analytics_summary
 
@@ -37,6 +38,8 @@ def complaints():
     status = request.args.get('status', '').strip()
     category = request.args.get('category', '').strip()
     priority = request.args.get('priority', '').strip()
+    city_filter = request.args.get('city', '').strip()
+    area_filter = request.args.get('area', '').strip()
     dept_id = request.args.get('department_id', type=int)
     search = request.args.get('search', '').strip()
 
@@ -48,6 +51,10 @@ def complaints():
         query = query.filter(Complaint.category == category)
     if priority:
         query = query.filter(Complaint.priority == priority)
+    if city_filter:
+        query = query.filter(Complaint.city.ilike(f"%{city_filter}%"))
+    if area_filter:
+        query = query.filter(Complaint.area.ilike(f"%{area_filter}%"))
     if dept_id:
         query = query.filter(Complaint.department_id == dept_id)
     if search:
@@ -55,7 +62,9 @@ def complaints():
         query = query.filter(
             (Complaint.complaint_id.ilike(pattern)) |
             (Complaint.title.ilike(pattern)) |
-            (Complaint.description.ilike(pattern))
+            (Complaint.description.ilike(pattern)) |
+            (Complaint.city.ilike(pattern)) |
+            (Complaint.area.ilike(pattern))
         )
 
     page = request.args.get('page', 1, type=int)
@@ -64,6 +73,7 @@ def complaints():
     complaints_list = pagination.items
     departments = Department.query.order_by(Department.name).all()
     staff_members = User.query.filter_by(role='staff', is_active=True).all()
+    categories = list(CIVIC_CATEGORIES.keys())
 
     return render_template(
         'admin/complaints.html',
@@ -71,9 +81,12 @@ def complaints():
         pagination=pagination,
         departments=departments,
         staff_members=staff_members,
+        categories=categories,
         selected_status=status,
         selected_category=category,
         selected_priority=priority,
+        selected_city=city_filter,
+        selected_area=area_filter,
         selected_dept=dept_id,
         search=search
     )
@@ -101,13 +114,15 @@ def change_status(complaint_id):
     new_status = request.form.get('status')
     note = request.form.get('note', '').strip()
     rejection_reason = request.form.get('rejection_reason', '').strip() if new_status == 'Rejected' else None
+    resolution_note = request.form.get('resolution_note', '').strip() if new_status in ('Resolved', 'Closed') else None
 
     update_status(
         complaint=complaint,
         new_status=new_status,
         changed_by_user_id=session['user_id'],
         note=note,
-        rejection_reason=rejection_reason
+        rejection_reason=rejection_reason,
+        resolution_note=resolution_note
     )
     flash(f'Complaint #{complaint.complaint_id} status updated to {new_status}.', 'success')
     return redirect(request.referrer or url_for('admin.complaints'))

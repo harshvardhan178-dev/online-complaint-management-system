@@ -1,16 +1,22 @@
 {% extends 'base.html' %}
 
-{% block title %}Track Service Ticket{% endblock %}
-{% block header_title %}Ticket Status Tracker{% endblock %}
+{% block title %}Track Civic Grievance – SmartComplaint{% endblock %}
+{% block header_title %}Grievance Status Tracker{% endblock %}
+
+{% block extra_head %}
+{% if complaint and complaint.latitude and complaint.longitude %}
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
+{% endif %}
+{% endblock %}
 
 {% block content %}
-<div style="max-width: 920px; margin: 0 auto;">
+<div style="max-width: 960px; margin: 0 auto;">
     <!-- Search / Lookup Bar -->
     <div class="card" style="margin-bottom: 24px;">
         <div class="card-body" style="padding: 18px 24px;">
-            <form action="{{ url_for('user.track_complaint') }}" method="GET" style="display: flex; gap: 12px; align-items: center;">
-                <div style="position: relative; flex: 1;">
-                    <input type="text" name="complaint_id" class="form-control" placeholder="Search by Ticket Reference ID (e.g. CMP-2026-00001)" value="{{ query_id or '' }}" required style="padding-left: 38px;">
+            <form action="{{ url_for('user.track_complaint') }}" method="GET" style="display: flex; gap: 12px; align-items: center; flex-wrap: wrap;">
+                <div style="position: relative; flex: 1; min-width: 260px;">
+                    <input type="text" name="complaint_id" class="form-control" placeholder="Search by Grievance Tracking ID (e.g. SC-2026-00001)" value="{{ query_id or '' }}" required style="padding-left: 38px;">
                     <i class="fa-solid fa-magnifying-glass" style="position: absolute; left: 14px; top: 50%; transform: translateY(-50%); color: var(--text-muted);"></i>
                 </div>
                 <button type="submit" class="btn btn-primary" style="white-space: nowrap;">
@@ -26,16 +32,21 @@
             <div class="card-header" style="flex-wrap: wrap; gap: 14px;">
                 <div>
                     <div style="font-size: 0.75rem; text-transform: uppercase; color: var(--text-secondary); font-weight: 700; letter-spacing: 0.05em;">
-                        Ticket Reference ID
+                        Civic Grievance Reference
                     </div>
                     <h2 class="card-title" style="font-size: 1.35rem; margin-top: 2px;">
                         #{{ complaint.complaint_id }} — {{ complaint.title }}
                     </h2>
                 </div>
-                <div>
+                <div style="display: flex; align-items: center; gap: 10px;">
                     <span class="badge {{ complaint.status_badge_class }}" style="font-size: 0.88rem; padding: 6px 14px;">
                         <span class="badge-dot"></span> {{ complaint.status }}
                     </span>
+                    {% if complaint.status in ('Resolved', 'Closed') and session.get('user_id') == complaint.user_id %}
+                        <button type="button" class="btn btn-outline btn-sm" onclick="document.getElementById('reopenModal').style.display='flex'">
+                            <i class="fa-solid fa-rotate-left"></i> Reopen Issue
+                        </button>
+                    {% endif %}
                 </div>
             </div>
 
@@ -46,6 +57,12 @@
                         <div style="font-size: 0.72rem; color: var(--text-secondary); text-transform: uppercase; font-weight: 700;">Category</div>
                         <div style="font-weight: 600; margin-top: 3px; color: var(--text-dark);">{{ complaint.category }}</div>
                     </div>
+                    {% if complaint.subcategory %}
+                    <div>
+                        <div style="font-size: 0.72rem; color: var(--text-secondary); text-transform: uppercase; font-weight: 700;">Subcategory</div>
+                        <div style="font-weight: 600; margin-top: 3px; color: var(--text-dark);">{{ complaint.subcategory }}</div>
+                    </div>
+                    {% endif %}
                     <div>
                         <div style="font-size: 0.72rem; color: var(--text-secondary); text-transform: uppercase; font-weight: 700;">Priority</div>
                         <div class="priority-tag {{ complaint.priority_badge_class }}" style="margin-top: 3px;">
@@ -59,9 +76,9 @@
                         </div>
                     </div>
                     <div>
-                        <div style="font-size: 0.72rem; color: var(--text-secondary); text-transform: uppercase; font-weight: 700;">Assigned Staff</div>
+                        <div style="font-size: 0.72rem; color: var(--text-secondary); text-transform: uppercase; font-weight: 700;">Assigned Officer</div>
                         <div style="font-weight: 600; margin-top: 3px; color: var(--text-dark);">
-                            {{ complaint.assignee.full_name if complaint.assignee else 'Awaiting Dispatch' }}
+                            {{ complaint.assignee.full_name if complaint.assignee else 'Awaiting Field Dispatch' }}
                         </div>
                     </div>
                     <div>
@@ -72,6 +89,29 @@
                     </div>
                 </div>
 
+                <!-- Civic Location Details Grid -->
+                {% if complaint.city or complaint.area or complaint.street_name or complaint.landmark %}
+                <div style="margin-bottom: 24px; padding: 16px; background: #FFFFFF; border: 1px solid var(--border-color); border-radius: var(--radius-md);">
+                    <h3 style="font-size: 0.95rem; font-weight: 700; color: var(--text-dark); margin-bottom: 12px; display: flex; align-items: center; gap: 8px;">
+                        <i class="fa-solid fa-location-dot" style="color: var(--primary);"></i> Civic Location Details
+                    </h3>
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; font-size: 0.88rem;">
+                        <div><strong style="color: var(--text-secondary);">City / Town:</strong> {{ complaint.city or 'Not specified' }}</div>
+                        <div><strong style="color: var(--text-secondary);">State:</strong> {{ complaint.state or 'Not specified' }}</div>
+                        <div><strong style="color: var(--text-secondary);">Area / Ward:</strong> {{ complaint.area or 'Not specified' }}</div>
+                        <div><strong style="color: var(--text-secondary);">Street / Road:</strong> {{ complaint.street_name or 'Not specified' }}</div>
+                        <div><strong style="color: var(--text-secondary);">Landmark:</strong> {{ complaint.landmark or 'Not specified' }}</div>
+                        {% if complaint.contact_phone %}
+                        <div><strong style="color: var(--text-secondary);">Contact Phone:</strong> {{ complaint.contact_phone }}</div>
+                        {% endif %}
+                    </div>
+
+                    {% if complaint.latitude and complaint.longitude %}
+                        <div id="tracked-map" style="height: 220px; border-radius: 8px; margin-top: 14px; border: 1px solid var(--border-color);"></div>
+                    {% endif %}
+                </div>
+                {% endif %}
+
                 <!-- Description -->
                 <div style="margin-bottom: 24px;">
                     <h3 style="font-size: 0.95rem; font-weight: 700; color: var(--text-dark); margin-bottom: 8px;">
@@ -80,19 +120,38 @@
                     <div style="white-space: pre-wrap; background: #FFFFFF; border: 1px solid var(--border-color); padding: 18px; border-radius: var(--radius-sm); font-size: 0.92rem; line-height: 1.6; color: var(--text-dark);">{{ complaint.description }}</div>
                 </div>
 
-                <!-- Attachment if present -->
-                {% if complaint.attachment %}
-                    <div style="margin-bottom: 24px; padding: 14px 18px; background: var(--primary-light); border: 1px solid var(--primary-border); border-radius: var(--radius-sm); display: flex; align-items: center; justify-content: space-between;">
-                        <div style="display: flex; align-items: center; gap: 10px;">
-                            <i class="fa-solid fa-paperclip" style="color: var(--primary); font-size: 1.2rem;"></i>
-                            <div>
-                                <span style="font-weight: 700; font-size: 0.88rem; color: var(--text-dark);">Attached File:</span>
-                                <span style="font-size: 0.85rem; color: var(--text-secondary); margin-left: 6px;">{{ complaint.attachment }}</span>
+                <!-- Evidence Attachments (Photo & Video) -->
+                {% if complaint.attachment or complaint.video_attachment %}
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 12px; margin-bottom: 24px;">
+                        {% if complaint.attachment %}
+                            <div style="padding: 14px 18px; background: var(--primary-light); border: 1px solid var(--primary-border); border-radius: var(--radius-sm); display: flex; align-items: center; justify-content: space-between;">
+                                <div style="display: flex; align-items: center; gap: 10px;">
+                                    <i class="fa-solid fa-camera" style="color: var(--primary); font-size: 1.2rem;"></i>
+                                    <div>
+                                        <span style="font-weight: 700; font-size: 0.88rem; color: var(--text-dark);">Photo Evidence:</span>
+                                        <span style="font-size: 0.82rem; color: var(--text-secondary); margin-left: 4px; display: block;">{{ complaint.attachment }}</span>
+                                    </div>
+                                </div>
+                                <a href="{{ url_for('user.view_upload', filename=complaint.attachment) }}" target="_blank" class="btn btn-outline btn-sm">
+                                    <i class="fa-solid fa-eye"></i> View Photo
+                                </a>
                             </div>
-                        </div>
-                        <a href="{{ url_for('user.view_upload', filename=complaint.attachment) }}" target="_blank" class="btn btn-outline btn-sm">
-                            <i class="fa-solid fa-arrow-up-right-from-square"></i> View / Download
-                        </a>
+                        {% endif %}
+
+                        {% if complaint.video_attachment %}
+                            <div style="padding: 14px 18px; background: rgba(59, 130, 246, 0.08); border: 1px solid rgba(59, 130, 246, 0.2); border-radius: var(--radius-sm); display: flex; align-items: center; justify-content: space-between;">
+                                <div style="display: flex; align-items: center; gap: 10px;">
+                                    <i class="fa-solid fa-video" style="color: #3B82F6; font-size: 1.2rem;"></i>
+                                    <div>
+                                        <span style="font-weight: 700; font-size: 0.88rem; color: var(--text-dark);">Video Evidence:</span>
+                                        <span style="font-size: 0.82rem; color: var(--text-secondary); margin-left: 4px; display: block;">{{ complaint.video_attachment }}</span>
+                                    </div>
+                                </div>
+                                <a href="{{ url_for('user.view_upload', filename=complaint.video_attachment) }}" target="_blank" class="btn btn-outline btn-sm">
+                                    <i class="fa-solid fa-play"></i> Watch Video
+                                </a>
+                            </div>
+                        {% endif %}
                     </div>
                 {% endif %}
 
@@ -107,10 +166,10 @@
                 {% endif %}
 
                 <!-- Resolution Note if Resolved -->
-                {% if complaint.status == 'Resolved' and complaint.resolution_note %}
+                {% if complaint.status in ('Resolved', 'Closed') and complaint.resolution_note %}
                     <div class="alert alert-success" style="margin-bottom: 24px;">
                         <div>
-                            <strong><i class="fa-solid fa-circle-check"></i> Resolution Summary:</strong>
+                            <strong><i class="fa-solid fa-circle-check"></i> Municipal Resolution Summary:</strong>
                             <p style="margin-top: 6px; margin-bottom: 0;">{{ complaint.resolution_note }}</p>
                         </div>
                     </div>
@@ -119,7 +178,7 @@
                 <!-- Timeline History -->
                 <div style="margin-top: 32px;">
                     <h3 style="font-size: 1.05rem; font-weight: 700; color: var(--text-dark); margin-bottom: 18px; display: flex; align-items: center; gap: 8px;">
-                        <i class="fa-solid fa-timeline" style="color: var(--primary);"></i> Activity & Resolution Timeline
+                        <i class="fa-solid fa-timeline" style="color: var(--primary);"></i> Grievance Lifecycle & Timeline
                     </h3>
 
                     <div class="timeline">
@@ -135,7 +194,7 @@
                                     </div>
                                     <p class="timeline-note">{{ t.note }}</p>
                                     <div style="font-size: 0.75rem; color: var(--text-muted); margin-top: 8px;">
-                                        Logged by: <strong>{{ t.author.full_name if t.author else 'System Engine' }}</strong>
+                                        Logged by: <strong>{{ t.author.full_name if t.author else 'Municipal System Engine' }}</strong>
                                     </div>
                                 </div>
                             </div>
@@ -144,11 +203,11 @@
                 </div>
 
                 <!-- Feedback Section for Resolved Complaints -->
-                {% if complaint.status == 'Resolved' %}
+                {% if complaint.status in ('Resolved', 'Closed') %}
                     <div class="card" style="margin-top: 28px; border-left: 4px solid var(--success);">
                         <div class="card-header">
                             <h3 class="card-title">
-                                <i class="fa-solid fa-star" style="color: #F59E0B;"></i> Resolution Satisfaction Feedback
+                                <i class="fa-solid fa-star" style="color: #F59E0B;"></i> Citizen Satisfaction Feedback
                             </h3>
                         </div>
                         <div class="card-body">
@@ -171,7 +230,7 @@
                             {% elif session.get('user_id') == complaint.user_id %}
                                 <form action="{{ url_for('user.give_feedback', complaint_id=complaint.id) }}" method="POST">
                                     <p style="font-size: 0.9rem; color: var(--text-secondary); margin-bottom: 14px;">
-                                        How satisfied are you with the resolution turnaround and quality of service?
+                                        How satisfied are you with the municipal response and turnaround time?
                                     </p>
                                     
                                     <input type="hidden" name="rating" id="rating-value" value="5">
@@ -185,7 +244,7 @@
 
                                     <div class="form-group">
                                         <label for="feedback_comment" class="form-label">Comments & Experience</label>
-                                        <textarea id="feedback_comment" name="comment" rows="3" class="form-control" placeholder="Tell us what went well or how we can improve our resolution process..."></textarea>
+                                        <textarea id="feedback_comment" name="comment" rows="3" class="form-control" placeholder="Share your experience with the resolution or field work..."></textarea>
                                     </div>
 
                                     <button type="submit" class="btn btn-success">
@@ -198,14 +257,44 @@
                 {% endif %}
             </div>
         </div>
+
+        <!-- Reopen Modal -->
+        <div id="reopenModal" class="modal" style="display: none;">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h3 class="modal-title">Reopen Grievance #{{ complaint.complaint_id }}</h3>
+                        <button type="button" class="close" onclick="document.getElementById('reopenModal').style.display='none'">&times;</button>
+                    </div>
+                    <form action="{{ url_for('user.reopen_complaint', complaint_id=complaint.id) }}" method="POST">
+                        <div class="modal-body">
+                            <p style="font-size: 0.9rem; color: var(--text-secondary); margin-bottom: 14px;">
+                                If the issue has resurfaced or was not resolved adequately, please state the reason for reopening:
+                            </p>
+                            <div class="form-group">
+                                <label for="reopen_reason" class="form-label">Reason for Reopening <span style="color: #EF4444;">*</span></label>
+                                <textarea name="reopen_reason" id="reopen_reason" class="form-control" rows="3" required placeholder="e.g. The leak started again after water supply resumed, or pothole repair washed away..."></textarea>
+                            </div>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" onclick="document.getElementById('reopenModal').style.display='none'">Cancel</button>
+                            <button type="submit" class="btn btn-warning">
+                                <i class="fa-solid fa-rotate-left"></i> Confirm Reopen
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
     {% elif query_id %}
         <div class="card" style="text-align: center; padding: 48px 24px;">
             <div style="width: 56px; height: 56px; border-radius: 50%; background: var(--warning-light); color: var(--warning); display: flex; align-items: center; justify-content: center; font-size: 1.5rem; margin: 0 auto 16px;">
                 <i class="fa-solid fa-triangle-exclamation"></i>
             </div>
-            <h3 style="font-size: 1.2rem; font-weight: 700; color: var(--text-dark); margin-bottom: 6px;">Ticket Not Found</h3>
+            <h3 style="font-size: 1.2rem; font-weight: 700; color: var(--text-dark); margin-bottom: 6px;">Grievance Not Found</h3>
             <p style="color: var(--text-secondary); max-width: 420px; margin: 0 auto 18px; font-size: 0.9rem;">
-                No complaint ticket was found matching reference <strong>"{{ query_id }}"</strong>. Please verify the ID or check your history list.
+                No civic grievance was found matching reference <strong>"{{ query_id }}"</strong>. Please check the tracking ID or look up your complaint history.
             </p>
             <a href="{{ url_for('user.complaint_history') }}" class="btn btn-outline btn-sm">
                 Browse My Complaint History
@@ -213,4 +302,24 @@
         </div>
     {% endif %}
 </div>
+
+{% if complaint and complaint.latitude and complaint.longitude %}
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const mapEl = document.getElementById('tracked-map');
+    if (mapEl) {
+        const lat = {{ complaint.latitude }};
+        const lng = {{ complaint.longitude }};
+        const map = L.map('tracked-map').setView([lat, lng], 15);
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '&copy; OpenStreetMap'
+        }).addTo(map);
+        L.marker([lat, lng]).addTo(map)
+            .bindPopup("<b>{{ complaint.complaint_id }}</b><br>{{ complaint.title }}")
+            .openPopup();
+    }
+});
+</script>
+{% endif %}
 {% endblock %}

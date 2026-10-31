@@ -1,7 +1,7 @@
 {% extends 'base.html' %}
 
-{% block title %}User Workspace Dashboard{% endblock %}
-{% block header_title %}Workspace Overview{% endblock %}
+{% block title %}Citizen Civic Grievance Workspace – SmartComplaint{% endblock %}
+{% block header_title %}Public Grievance Dashboard{% endblock %}
 
 {% block content %}
 <!-- SaaS Statistics KPI Cards -->
@@ -9,15 +9,15 @@
     <!-- Total Submitted -->
     <div class="stat-card">
         <div class="stat-header">
-            <span class="stat-title">Total Submitted</span>
+            <span class="stat-title">Total Grievances</span>
             <div class="stat-icon icon-teal">
-                <i class="fa-solid fa-folder-open"></i>
+                <i class="fa-solid fa-bullhorn"></i>
             </div>
         </div>
         <div class="stat-value">{{ stats.total }}</div>
         <div class="stat-footer">
             <i class="fa-solid fa-arrow-trend-up text-success"></i>
-            <span>All lifetime tickets logged</span>
+            <span>All civic complaints lodged</span>
         </div>
     </div>
 
@@ -32,14 +32,14 @@
         <div class="stat-value">{{ stats.pending }}</div>
         <div class="stat-footer">
             <i class="fa-regular fa-clock" style="color: var(--warning);"></i>
-            <span>Awaiting triage or review</span>
+            <span>Awaiting municipal verification</span>
         </div>
     </div>
 
     <!-- In Progress -->
     <div class="stat-card">
         <div class="stat-header">
-            <span class="stat-title">In Progress</span>
+            <span class="stat-title">In Progress / Assigned</span>
             <div class="stat-icon icon-indigo">
                 <i class="fa-solid fa-screwdriver-wrench"></i>
             </div>
@@ -47,14 +47,14 @@
         <div class="stat-value">{{ stats.in_progress }}</div>
         <div class="stat-footer">
             <i class="fa-solid fa-rotate" style="color: #6D28D9;"></i>
-            <span>Staff actively working on resolution</span>
+            <span>Department crew resolving</span>
         </div>
     </div>
 
     <!-- Resolved -->
     <div class="stat-card">
         <div class="stat-header">
-            <span class="stat-title">Resolved</span>
+            <span class="stat-title">Resolved & Closed</span>
             <div class="stat-icon icon-emerald">
                 <i class="fa-solid fa-circle-check"></i>
             </div>
@@ -62,7 +62,7 @@
         <div class="stat-value">{{ stats.resolved }}</div>
         <div class="stat-footer">
             <i class="fa-solid fa-check-double text-success"></i>
-            <span>Successfully closed & verified</span>
+            <span>Successfully fixed & verified</span>
         </div>
     </div>
 </div>
@@ -70,14 +70,20 @@
 <!-- Modern SaaS Hero Quick Action Banner -->
 <div class="hero-banner">
     <div>
-        <h2 class="hero-title">Experience an Issue or Disruption?</h2>
+        <h2 class="hero-title">Report. Track. Resolve. — Your Civic Voice Matters</h2>
         <p class="hero-desc">
-            Submit a detailed service ticket with attachments, track live resolution timelines, or search existing institutional reports.
+            Submit complaints about potholes, broken streetlights, water supply interruptions, drainage, garbage accumulation, or public park damages. Every grievance is routed to the responsible municipal department with real-time tracking.
         </p>
     </div>
     <div class="hero-actions">
         <a href="{{ url_for('user.submit_complaint') }}" class="btn btn-primary" style="background: #0F766E; border: 1px solid rgba(255, 255, 255, 0.2); box-shadow: 0 4px 14px rgba(15, 118, 110, 0.4);">
-            <i class="fa-solid fa-plus-circle"></i> File New Complaint
+            <i class="fa-solid fa-plus-circle"></i> Register Civic Grievance
+        </a>
+        <a href="{{ url_for('user.track_complaint') }}" class="btn btn-outline" style="background: rgba(255, 255, 255, 0.12); color: #FFFFFF; border-color: rgba(255, 255, 255, 0.25);">
+            <i class="fa-solid fa-magnifying-glass"></i> Track by Grievance ID
+        </a>
+    </div>
+</div>
         </a>
         <a href="{{ url_for('user.track_complaint') }}" class="btn btn-outline" style="background: rgba(255, 255, 255, 0.12); color: #FFFFFF; border-color: rgba(255, 255, 255, 0.25);">
             <i class="fa-solid fa-magnifying-glass"></i> Track by Ticket ID

@@ -8,11 +8,14 @@ def utc_now():
     return datetime.now(timezone.utc)
 
 def generate_complaint_id() -> str:
-    """Generates unique formatted complaint ID, e.g. CMP-2026-00001"""
+    """Generates unique formatted complaint ID, e.g. SC-2026-00001"""
     year = utc_now().year
-    prefix = f"CMP-{year}-"
+    prefix = f"SC-{year}-"
     last_complaint = (
-        Complaint.query.filter(Complaint.complaint_id.like(f"{prefix}%"))
+        Complaint.query.filter(
+            (Complaint.complaint_id.like(f"{prefix}%")) |
+            (Complaint.complaint_id.like(f"CMP-{year}-%"))
+        )
         .order_by(Complaint.id.desc())
         .first()
     )
@@ -55,7 +58,11 @@ def detect_duplicates(title: str, description: str, category: str, exclude_id: i
     duplicates.sort(key=lambda x: x['similarity'], reverse=True)
     return duplicates[:5]
 
-def create_complaint(user_id: int, title: str, description: str, category: str, priority: str, attachment: str = None):
+def create_complaint(user_id: int, title: str, description: str, category: str, priority: str, 
+                     attachment: str = None, subcategory: str = None, state: str = None, 
+                     city: str = None, area: str = None, street_name: str = None, 
+                     landmark: str = None, latitude: float = None, longitude: float = None, 
+                     video_attachment: str = None, contact_phone: str = None):
     new_id = generate_complaint_id()
     complaint = Complaint(
         complaint_id=new_id,
@@ -63,9 +70,19 @@ def create_complaint(user_id: int, title: str, description: str, category: str, 
         title=title.strip(),
         description=description.strip(),
         category=category,
+        subcategory=subcategory.strip() if subcategory else None,
         priority=priority,
         status='Submitted',
-        attachment=attachment
+        attachment=attachment,
+        video_attachment=video_attachment,
+        state=state.strip() if state else None,
+        city=city.strip() if city else None,
+        area=area.strip() if area else None,
+        street_name=street_name.strip() if street_name else None,
+        landmark=landmark.strip() if landmark else None,
+        latitude=latitude,
+        longitude=longitude,
+        contact_phone=contact_phone.strip() if contact_phone else None
     )
     db.session.add(complaint)
     db.session.flush()
@@ -74,7 +91,7 @@ def create_complaint(user_id: int, title: str, description: str, category: str, 
     timeline_entry = StatusTimeline(
         complaint_id=complaint.id,
         status='Submitted',
-        note='Complaint registered in the system.',
+        note='Grievance registered in the system.',
         changed_by=user_id
     )
     db.session.add(timeline_entry)
@@ -83,7 +100,7 @@ def create_complaint(user_id: int, title: str, description: str, category: str, 
     create_notification(
         user_id=user_id,
         complaint_id=complaint.id,
-        message=f"Your complaint #{new_id} '{title[:30]}...' has been submitted successfully."
+        message=f"Grievance #{new_id} '{title[:35]}...' submitted successfully. We will track and update you."
     )
 
     db.session.commit()
@@ -107,9 +124,21 @@ def update_status(complaint: Complaint, new_status: str, changed_by_user_id: int
     db.session.add(timeline_entry)
 
     # Notify the user
-    msg = f"Your complaint #{complaint.complaint_id} status changed to '{new_status}'."
-    if rejection_reason:
-        msg += f" Reason: {rejection_reason}"
+    if new_status == 'Resolved':
+        msg = f"Your grievance #{complaint.complaint_id} has been marked as Resolved."
+        if resolution_note:
+            msg += f" Note: {resolution_note}"
+    elif new_status == 'Rejected':
+        msg = f"Your grievance #{complaint.complaint_id} was rejected."
+        if rejection_reason:
+            msg += f" Reason: {rejection_reason}"
+    elif new_status == 'Reopened':
+        msg = f"Grievance #{complaint.complaint_id} has been reopened for further inspection."
+    elif new_status == 'Closed':
+        msg = f"Grievance #{complaint.complaint_id} has been officially closed."
+    else:
+        msg = f"Your grievance #{complaint.complaint_id} status changed to '{new_status}'."
+
     create_notification(
         user_id=complaint.user_id,
         complaint_id=complaint.id,

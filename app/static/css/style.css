@@ -77,6 +77,21 @@
   --transition-normal: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
+[data-theme="dark"] {
+  --bg-main: #0B0F17;
+  --bg-card: #131B2E;
+  --bg-card-subtle: #19243C;
+  --bg-hover: #1E293B;
+  --text-dark: #F8FAFC;
+  --text-secondary: #94A3B8;
+  --text-muted: #64748B;
+  --border-color: #27354E;
+  --border-color-subtle: #1D2A40;
+  --primary-light: #0C2E2A;
+  --primary-subtle: #11443E;
+  --primary-border: #134E4A;
+}
+
 /* ==========================================================================
    Base & Reset
    ========================================================================== */

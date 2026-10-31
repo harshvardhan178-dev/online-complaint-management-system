@@ -99,6 +99,18 @@ class Complaint(db.Model):
     rejection_reason = db.Column(db.Text, nullable=True)
     resolution_note = db.Column(db.Text, nullable=True)
     attachment = db.Column(db.String(255), nullable=True)
+    video_attachment = db.Column(db.String(255), nullable=True)
+    
+    # Civic Location & Details
+    subcategory = db.Column(db.String(100), nullable=True)
+    state = db.Column(db.String(100), nullable=True)
+    city = db.Column(db.String(100), nullable=True, index=True)
+    area = db.Column(db.String(150), nullable=True, index=True)
+    street_name = db.Column(db.String(200), nullable=True)
+    landmark = db.Column(db.String(200), nullable=True)
+    latitude = db.Column(db.Float, nullable=True)
+    longitude = db.Column(db.Float, nullable=True)
+    contact_phone = db.Column(db.String(20), nullable=True)
     
     created_at = db.Column(db.DateTime, default=utc_now, nullable=False)
     updated_at = db.Column(db.DateTime, default=utc_now, onupdate=utc_now, nullable=False)
@@ -119,7 +131,9 @@ class Complaint(db.Model):
             'Assigned': 'badge-info',
             'In Progress': 'badge-secondary',
             'Resolved': 'badge-success',
-            'Rejected': 'badge-danger'
+            'Closed': 'badge-dark',
+            'Rejected': 'badge-danger',
+            'Reopened': 'badge-warning'
         }
         return mapping.get(self.status, 'badge-light')
 
@@ -140,12 +154,22 @@ class Complaint(db.Model):
             'title': self.title,
             'description': self.description,
             'category': self.category,
+            'subcategory': self.subcategory,
             'priority': self.priority,
             'status': self.status,
+            'state': self.state,
+            'city': self.city,
+            'area': self.area,
+            'street_name': self.street_name,
+            'landmark': self.landmark,
+            'latitude': self.latitude,
+            'longitude': self.longitude,
+            'contact_phone': self.contact_phone,
             'submitter_name': self.submitter.full_name if self.submitter else 'Unknown',
             'department_name': self.department.name if self.department else 'Unassigned',
             'assigned_staff': self.assignee.full_name if self.assignee else 'Unassigned',
             'attachment': self.attachment,
+            'video_attachment': self.video_attachment,
             'created_at': self.created_at.strftime('%Y-%m-%d %H:%M'),
             'updated_at': self.updated_at.strftime('%Y-%m-%d %H:%M') if self.updated_at else None,
             'has_feedback': self.feedback is not None,

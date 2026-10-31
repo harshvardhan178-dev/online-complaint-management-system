@@ -25,10 +25,10 @@
         <aside class="sidebar">
             <div class="sidebar-brand">
                 <div class="brand-icon">
-                    <i class="fa-solid fa-layer-group"></i>
+                    <i class="fa-solid fa-landmark-dome"></i>
                 </div>
                 <span>SmartComplaint</span>
-                <span class="brand-badge">SaaS</span>
+                <span class="brand-badge">Civic</span>
             </div>
 
             <ul class="sidebar-menu">
@@ -181,6 +181,11 @@
                             <i class="fa-solid fa-file-export"></i> <span>Export</span>
                         </a>
                     {% endif %}
+
+                    <!-- Theme Dark/Light Toggle -->
+                    <button type="button" id="theme-toggle-btn" class="btn btn-outline btn-sm" title="Toggle Theme" aria-label="Toggle Theme" style="padding: 6px 10px;">
+                        <i class="fa-solid fa-moon"></i>
+                    </button>
 
                     <!-- Profile Quick Pill -->
                     <a href="{{ url_for('user.profile') }}" class="btn btn-outline btn-sm" title="Profile & Settings" style="gap: 6px;">

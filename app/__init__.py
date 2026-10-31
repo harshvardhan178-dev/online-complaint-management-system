@@ -107,13 +107,16 @@ def create_app(config_class=Config):
 def seed_initial_data(app):
     """Seeds initial departments and default administrator / staff / demo user accounts."""
     try:
-        # Default Departments
+        # Default Civic Departments
         initial_depts = [
-            ("IT Support", "Technical issues, network, portals, and computer hardware."),
-            ("Facilities & Maintenance", "Hostel rooms, plumbing, electrical repairs, sanitation."),
-            ("Finance & Accounts", "Fee payments, refunds, scholarships, billing."),
-            ("Administration", "General campus policies, security, certificates, scheduling."),
-            ("Academic Affairs", "Courses, grades, exam schedules, faculty concerns.")
+            ("Public Works Department (PWD)", "Roads, potholes, footpaths, bridges, and public transit infrastructure."),
+            ("Electricity Board & Streetlights", "Power outages, street lighting, electric poles, transformers, and exposed wiring."),
+            ("Water Supply & Sewerage Board", "Drinking water supply, pipeline leaks, low pressure, and clean water delivery."),
+            ("Municipal Sanitation & Drainage", "Blocked drains, sewage overflow, open manholes, and flood mitigation."),
+            ("Solid Waste & Garbage Management", "Garbage collection, overflowing dumpsters, roadside dumping, and public cleanliness."),
+            ("Parks & Public Recreation", "Public parks, children's playgrounds, benches, and green space maintenance."),
+            ("Public Health & Environment", "Air/water/noise pollution control, mosquito fogging, and environmental sanitation."),
+            ("General Municipal Administration", "Encroachments, stray animal welfare, civic permissions, and public grievance escalation.")
         ]
         created_depts = {}
         for name, desc in initial_depts:
@@ -138,28 +141,28 @@ def seed_initial_data(app):
             admin.set_password(app.config.get('DEFAULT_ADMIN_PASSWORD', 'Admin@123'))
             db.session.add(admin)
 
-        # Default Staff Member for IT Support
+        # Default Staff Member for Public Works
         staff_email = 'staff@smartcomplaint.com'
         staff = User.query.filter_by(email=staff_email).first()
         if not staff:
-            it_dept = created_depts.get("IT Support")
+            pwd_dept = created_depts.get("Public Works Department (PWD)")
             staff = User(
-                full_name='Alex Rivera (Staff)',
+                full_name='Rajesh Kumar (Field Officer)',
                 email=staff_email,
                 phone='9876543211',
                 role='staff',
-                department_id=it_dept.id if it_dept else None,
+                department_id=pwd_dept.id if pwd_dept else None,
                 is_active=True
             )
             staff.set_password('Staff@123')
             db.session.add(staff)
 
-        # Default Demo User
+        # Default Demo Citizen User
         demo_user_email = 'user@smartcomplaint.com'
         demo_user = User.query.filter_by(email=demo_user_email).first()
         if not demo_user:
             demo_user = User(
-                full_name='John Doe',
+                full_name='Aarav Sharma (Citizen)',
                 email=demo_user_email,
                 phone='9876543212',
                 role='user',
