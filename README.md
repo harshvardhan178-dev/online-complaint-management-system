@@ -27,9 +27,10 @@ SmartComplaint provides three types of user access:
 
 **Demo Access:** For demonstration credentials, contact the project administrator privately. No passwords are published in this repository.
 
-
+---
 
 ## 🌟 Core System Capabilities
+
 
 ### 1. Civic Grievance Categories & Dynamic Subcategories
 - **Roads & Transportation**: Potholes, Damaged roads, Broken footpaths, Traffic signal issues, Road signs missing

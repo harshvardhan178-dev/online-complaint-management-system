@@ -1,9 +1,10 @@
+
 # Virtual Environment
 .venv/
 env/
 venv/
 
-# Byte-compiled / optimized / DLL files
+# Python cache files
 __pycache__/
 *.py[cod]
 *$py.class
@@ -13,17 +14,29 @@ __pycache__/
 
 # Local databases
 *.db
+*.sqlite
 *.sqlite3
 
-# Uploads directory contents (preserve folder structure)
+# Uploads directory contents
 uploads/*
 !uploads/.gitkeep
 
 # Environment secrets
 .env
+.env.*
+!.env.example
+!.env.production.example
 
 # IDE / Editor files
 .vscode/
 .idea/
 *.swp
 
+# Testing and coverage
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Operating system files
+.DS_Store
+Thumbs.db
