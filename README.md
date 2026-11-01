@@ -103,8 +103,8 @@ $$\text{Submitted} \longrightarrow \text{Under Review} \longrightarrow \text{Ass
 
 ### 1. Clone & Setup Virtual Environment
 ```powershell
-git clone https://github.com/your-username/smartcomplaint.git
-cd "smartcomplaint"
+git clone https://github.com/harshvardhan178-dev/online-complaint-management-system.git
+cd online-complaint-management-system
 
 # Create virtual environment
 python -m venv .venv
