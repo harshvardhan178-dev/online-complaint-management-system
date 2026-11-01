@@ -1,21 +1,25 @@
+
 import os
-from flask import Flask, session, g
+from flask import Flask, session
 from flask_migrate import Migrate
 from flask_bcrypt import Bcrypt
 from flask_session import Session
+
 from app.config import Config
 from app.models import db, User, Department, Notification
 from app.services.notification_service import mail
+
 
 bcrypt = Bcrypt()
 migrate = Migrate()
 sess = Session()
 
+
 def create_app(config_class=Config):
     app = Flask(__name__)
     app.config.from_object(config_class)
 
-    # Ensure uploads and session directories exist
+    # Ensure upload and session directories exist
     os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
     os.makedirs(app.config['SESSION_FILE_DIR'], exist_ok=True)
 
@@ -37,16 +41,17 @@ def create_app(config_class=Config):
     app.register_blueprint(admin_bp)
     app.register_blueprint(staff_bp)
 
-    # Health check probe for Render, Kubernetes, and load balancers
+    # Health check
     @app.route('/health')
     def health_check():
         try:
             db.session.execute(db.text('SELECT 1'))
             db_status = 'connected'
         except Exception as e:
+            app.logger.error("Database health check failed: %s", e)
             return {
                 'status': 'unhealthy',
-                'database': f'error: {str(e)}',
+                'database': 'connection failed',
                 'service': 'SmartComplaint'
             }, 500
 
@@ -58,7 +63,7 @@ def create_app(config_class=Config):
             'environment': app.config.get('FLASK_ENV', 'production')
         }, 200
 
-    # Production Security Response Headers
+    # Security response headers
     @app.after_request
     def set_security_headers(response):
         response.headers['X-Content-Type-Options'] = 'nosniff'
@@ -66,7 +71,7 @@ def create_app(config_class=Config):
         response.headers['X-XSS-Protection'] = '1; mode=block'
         return response
 
-    # Custom Branded Error Handlers
+    # Error handlers
     @app.errorhandler(404)
     def not_found_error(error):
         from flask import render_template
@@ -83,95 +88,119 @@ def create_app(config_class=Config):
         db.session.rollback()
         return render_template('errors/500.html'), 500
 
-    # Global context processor for notifications & layout helpers
+    # Global context processor
     @app.context_processor
     def inject_global_vars():
         unread_count = 0
         current_user = None
+
         if 'user_id' in session:
             current_user = db.session.get(User, session['user_id'])
+
             if current_user:
-                unread_count = Notification.query.filter_by(user_id=current_user.id, is_read=False).count()
+                unread_count = Notification.query.filter_by(
+                    user_id=current_user.id,
+                    is_read=False
+                ).count()
+
         return dict(
             current_user=current_user,
             unread_notifications_count=unread_count
         )
 
-    # Auto-seed database tables and initial accounts on first startup
+    # Initialize database and seed initial departments/admin
     with app.app_context():
         db.create_all()
         seed_initial_data(app)
 
     return app
 
+
 def seed_initial_data(app):
-    """Seeds initial departments and default administrator / staff / demo user accounts."""
+    """Create initial departments and administrator account."""
+
     try:
-        # Default Civic Departments
+        # Initial civic departments
         initial_depts = [
-            ("Public Works Department (PWD)", "Roads, potholes, footpaths, bridges, and public transit infrastructure."),
-            ("Electricity Board & Streetlights", "Power outages, street lighting, electric poles, transformers, and exposed wiring."),
-            ("Water Supply & Sewerage Board", "Drinking water supply, pipeline leaks, low pressure, and clean water delivery."),
-            ("Municipal Sanitation & Drainage", "Blocked drains, sewage overflow, open manholes, and flood mitigation."),
-            ("Solid Waste & Garbage Management", "Garbage collection, overflowing dumpsters, roadside dumping, and public cleanliness."),
-            ("Parks & Public Recreation", "Public parks, children's playgrounds, benches, and green space maintenance."),
-            ("Public Health & Environment", "Air/water/noise pollution control, mosquito fogging, and environmental sanitation."),
-            ("General Municipal Administration", "Encroachments, stray animal welfare, civic permissions, and public grievance escalation.")
+            (
+                "Public Works Department (PWD)",
+                "Roads, potholes, footpaths, bridges, and public transit infrastructure."
+            ),
+            (
+                "Electricity Board & Streetlights",
+                "Power outages, street lighting, electric poles, transformers, and exposed wiring."
+            ),
+            (
+                "Water Supply & Sewerage Board",
+                "Drinking water supply, pipeline leaks, low pressure, and clean water delivery."
+            ),
+            (
+                "Municipal Sanitation & Drainage",
+                "Blocked drains, sewage overflow, open manholes, and flood mitigation."
+            ),
+            (
+                "Solid Waste & Garbage Management",
+                "Garbage collection, overflowing dumpsters, roadside dumping, and public cleanliness."
+            ),
+            (
+                "Parks & Public Recreation",
+                "Public parks, children's playgrounds, benches, and green space maintenance."
+            ),
+            (
+                "Public Health & Environment",
+                "Air/water/noise pollution control, mosquito fogging, and environmental sanitation."
+            ),
+            (
+                "General Municipal Administration",
+                "Encroachments, stray animal welfare, civic permissions, and public grievance escalation."
+            )
         ]
+
         created_depts = {}
+
         for name, desc in initial_depts:
             dept = Department.query.filter_by(name=name).first()
+
             if not dept:
-                dept = Department(name=name, description=desc)
+                dept = Department(
+                    name=name,
+                    description=desc
+                )
                 db.session.add(dept)
                 db.session.flush()
+
             created_depts[name] = dept
 
-        # Default Admin Account
-        admin_email = app.config.get('DEFAULT_ADMIN_EMAIL', 'admin@smartcomplaint.com')
+        # Create default administrator only if one does not exist
+        admin_email = app.config.get('DEFAULT_ADMIN_EMAIL')
         admin = User.query.filter_by(email=admin_email).first()
+
         if not admin:
+            admin_password = app.config.get('DEFAULT_ADMIN_PASSWORD')
+
+            if not admin_password:
+                raise RuntimeError(
+                    "DEFAULT_ADMIN_PASSWORD is not configured. "
+                    "Set it in your environment variables."
+                )
+
             admin = User(
-                full_name=app.config.get('DEFAULT_ADMIN_NAME', 'System Administrator'),
+                full_name=app.config.get(
+                    'DEFAULT_ADMIN_NAME',
+                    'System Administrator'
+                ),
                 email=admin_email,
                 phone='9876543210',
                 role='admin',
                 is_active=True
             )
-            admin.set_password(app.config.get('DEFAULT_ADMIN_PASSWORD', 'Admin@123'))
+
+            admin.set_password(admin_password)
             db.session.add(admin)
 
-        # Default Staff Member for Public Works
-        staff_email = 'staff@smartcomplaint.com'
-        staff = User.query.filter_by(email=staff_email).first()
-        if not staff:
-            pwd_dept = created_depts.get("Public Works Department (PWD)")
-            staff = User(
-                full_name='Rajesh Kumar (Field Officer)',
-                email=staff_email,
-                phone='9876543211',
-                role='staff',
-                department_id=pwd_dept.id if pwd_dept else None,
-                is_active=True
-            )
-            staff.set_password('Staff@123')
-            db.session.add(staff)
-
-        # Default Demo Citizen User
-        demo_user_email = 'user@smartcomplaint.com'
-        demo_user = User.query.filter_by(email=demo_user_email).first()
-        if not demo_user:
-            demo_user = User(
-                full_name='Aarav Sharma (Citizen)',
-                email=demo_user_email,
-                phone='9876543212',
-                role='user',
-                is_active=True
-            )
-            demo_user.set_password('User@123')
-            db.session.add(demo_user)
-
         db.session.commit()
+
     except Exception as e:
         db.session.rollback()
-        app.logger.warning(f"Database seed skipped or already initialized: {e}")
+        app.logger.error("Database initialization failed: %s", e)
+        raise
