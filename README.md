@@ -13,18 +13,21 @@
 
 > **SmartComplaint** is an enterprise-grade full-stack civic grievance management platform empowering citizens to report, geo-tag, track, and resolve municipal infrastructure breakdowns—such as dangerous potholes, non-functional streetlights, water pipeline bursts, sewage overflows, and garbage dumping.
 
----
+## 🏛️ Live Demonstration
 
-## 🏛️ Live Demonstration & Demo Accounts
+**Live Website:** https://your-actual-render-url.onrender.com
 
-| Role | Email | Password | Access Privileges |
-| :--- | :--- | :--- | :--- |
-| **Administrator** | `admin@smartcomplaint.com` | `Admin@123` | Department dispatch, status triage, reporting, analytics |
-| **Field Officer / Staff** | `staff@smartcomplaint.com` | `Staff@123` | Work orders, progress notes, field resolution |
-| **Citizen (Aarav)** | `user@smartcomplaint.com` | `User@123` | Register grievances, pin map, track lifecycle, rate service |
-| **Citizen (Pooja)** | `sarah@smartcomplaint.com` | `User@123` | Multi-city complaint tracking & feedback reviews |
+SmartComplaint provides three types of user access:
 
----
+| Role | Access Privileges |
+| :--- | :--- |
+| **Administrator** | Department management, complaint assignment, status updates, analytics and reports |
+| **Field Officer / Staff** | Assigned complaints, progress updates and resolution |
+| **Citizen** | Register complaints, track complaint status and provide feedback |
+
+**Demo Access:** For demonstration credentials, contact the project administrator privately. No passwords are published in this repository.
+
+
 
 ## 🌟 Core System Capabilities
 
