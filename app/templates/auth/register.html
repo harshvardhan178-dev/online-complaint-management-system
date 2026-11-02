@@ -37,6 +37,7 @@
             {% endwith %}
 
             <form action="{{ url_for('auth.register') }}" method="POST">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                 <div class="form-group">
                     <label for="full_name" class="form-label">Full Name</label>
                     <div style="position: relative;">
@@ -48,7 +49,7 @@
                 <div class="form-group">
                     <label for="email" class="form-label">Email Address</label>
                     <div style="position: relative;">
-                        <input type="email" id="email" name="email" class="form-control" required placeholder="name@organization.com" style="padding-left: 38px;">
+                        <input type="email" id="email" name="email" class="form-control" required placeholder="name@domain.com" style="padding-left: 38px;">
                         <i class="fa-regular fa-envelope" style="position: absolute; left: 14px; top: 50%; transform: translateY(-50%); color: var(--text-muted); font-size: 0.95rem;"></i>
                     </div>
                 </div>
@@ -56,28 +57,8 @@
                 <div class="form-group">
                     <label for="phone" class="form-label">Phone Number (Optional)</label>
                     <div style="position: relative;">
-                        <input type="tel" id="phone" name="phone" class="form-control" placeholder="+1 234 567 8900" style="padding-left: 38px;">
+                        <input type="tel" id="phone" name="phone" class="form-control" placeholder="+91 9876543210" style="padding-left: 38px;">
                         <i class="fa-solid fa-phone" style="position: absolute; left: 14px; top: 50%; transform: translateY(-50%); color: var(--text-muted); font-size: 0.95rem;"></i>
-                    </div>
-                </div>
-
-                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 14px;">
-                    <div class="form-group">
-                        <label for="role" class="form-label">Account Role</label>
-                        <select id="role" name="role" class="form-select" onchange="toggleDeptSelect(this.value)">
-                            <option value="user" selected>General User</option>
-                            <option value="staff">Department Staff</option>
-                        </select>
-                    </div>
-
-                    <div class="form-group" id="dept-group" style="display: none;">
-                        <label for="department_id" class="form-label">Department</label>
-                        <select id="department_id" name="department_id" class="form-select">
-                            <option value="">Select Unit</option>
-                            {% for dept in departments %}
-                                <option value="{{ dept.id }}">{{ dept.name }}</option>
-                            {% endfor %}
-                        </select>
                     </div>
                 </div>
 
@@ -94,7 +75,7 @@
                 </div>
 
                 <button type="submit" class="btn btn-primary btn-lg" style="width: 100%; margin-top: 10px;">
-                    <i class="fa-solid fa-check"></i> Complete Registration
+                    <i class="fa-solid fa-check"></i> Register Citizen Account
                 </button>
             </form>
 

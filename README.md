@@ -185,9 +185,11 @@ gunicorn wsgi:app --workers 3 --bind 0.0.0.0:5000 --timeout 120
 ---
 
 ## 🛡️ Security Implementation
+- **CSRF Defense**: All POST forms and asynchronous AJAX requests are protected against Cross-Site Request Forgery via `Flask-WTF` CSRF tokens with meta tag injection and automated error handlers.
 - **Password Protection**: Passwords salted and hashed with `Flask-Bcrypt` (Blowfish-based key derivation).
 - **Security Response Headers**: Production middleware injects `X-Content-Type-Options: nosniff`, `X-Frame-Options: SAMEORIGIN`, and `X-XSS-Protection: 1; mode=block`.
-- **Role-Based Access Control**: Role decorators (`@admin_required`, `@staff_required`, `@login_required`) enforce privilege boundaries on all endpoints.
+- **Role-Based Access Control**: Strict role verification (`@admin_required`, `@staff_required`, `@login_required`). Public user registration strictly isolates citizen accounts from privileged staff and admin roles.
+- **Session Protection**: CacheLib-backed session store with signer security and cookie HTTP-only flags.
 - **Upload Sanitization**: Uploaded files processed through `werkzeug.utils.secure_filename`, strictly whitelisted extensions, and 50 MB payload caps.
 
 ---

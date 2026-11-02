@@ -12,6 +12,7 @@
             </h2>
             {% if notifications %}
                 <form action="{{ url_for('user.mark_all_read') }}" method="POST">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                     <button type="submit" class="btn btn-outline btn-sm">
                         <i class="fa-solid fa-check-double"></i> Mark All as Read
                     </button>

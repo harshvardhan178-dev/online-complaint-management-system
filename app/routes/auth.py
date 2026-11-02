@@ -50,58 +50,52 @@ def register():
     if 'user_id' in session:
         return redirect_by_role(session.get('user_role'))
 
-    departments = Department.query.order_by(Department.name).all()
-
     if request.method == 'POST':
         full_name = request.form.get('full_name', '').strip()
         email = request.form.get('email', '').strip().lower()
         password = request.form.get('password', '')
         confirm_password = request.form.get('confirm_password', '')
         phone = request.form.get('phone', '').strip()
-        role = request.form.get('role', 'user')
-        department_id = request.form.get('department_id')
 
         # Validation
         if not full_name or not email or not password:
             flash('Full Name, Email, and Password are required.', 'danger')
-            return render_template('auth/register.html', departments=departments)
+            return render_template('auth/register.html')
 
         if password != confirm_password:
             flash('Passwords do not match.', 'danger')
-            return render_template('auth/register.html', departments=departments)
+            return render_template('auth/register.html')
 
         if len(password) < 6:
             flash('Password must be at least 6 characters.', 'danger')
-            return render_template('auth/register.html', departments=departments)
-
-        # Disallow public registration directly into admin role
-        if role == 'admin':
-            role = 'user'
+            return render_template('auth/register.html')
 
         existing_user = User.query.filter_by(email=email).first()
         if existing_user:
             flash('An account with this email already exists.', 'danger')
-            return render_template('auth/register.html', departments=departments)
+            return render_template('auth/register.html')
 
+        # Public registrations are citizen accounts. Staff & admin accounts are managed by administrators.
         new_user = User(
             full_name=full_name,
             email=email,
             phone=phone,
-            role=role,
-            department_id=department_id if role == 'staff' and department_id else None
+            role='user',
+            department_id=None,
+            is_active=True
         )
         new_user.set_password(password)
 
         try:
             db.session.add(new_user)
             db.session.commit()
-            flash('Account created successfully! Please log in.', 'success')
+            flash('Citizen account created successfully! Please log in.', 'success')
             return redirect(url_for('auth.login'))
         except Exception as e:
             db.session.rollback()
             flash('An error occurred during registration. Please try again.', 'danger')
 
-    return render_template('auth/register.html', departments=departments)
+    return render_template('auth/register.html')
 
 @auth_bp.route('/login', methods=['GET', 'POST'])
 def login():
@@ -130,6 +124,7 @@ def login():
             session['user_name'] = user.full_name
             session['user_email'] = user.email
             session['user_role'] = user.role
+            session['department_id'] = user.department_id
             session.permanent = remember
 
             flash(f'Welcome back, {user.full_name}!', 'success')

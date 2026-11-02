@@ -229,6 +229,7 @@
                                 </div>
                             {% elif session.get('user_id') == complaint.user_id %}
                                 <form action="{{ url_for('user.give_feedback', complaint_id=complaint.id) }}" method="POST">
+                                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                                     <p style="font-size: 0.9rem; color: var(--text-secondary); margin-bottom: 14px;">
                                         How satisfied are you with the municipal response and turnaround time?
                                     </p>
@@ -267,6 +268,7 @@
                         <button type="button" class="close" onclick="document.getElementById('reopenModal').style.display='none'">&times;</button>
                     </div>
                     <form action="{{ url_for('user.reopen_complaint', complaint_id=complaint.id) }}" method="POST">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                         <div class="modal-body">
                             <p style="font-size: 0.9rem; color: var(--text-secondary); margin-bottom: 14px;">
                                 If the issue has resurfaced or was not resolved adequately, please state the reason for reopening:

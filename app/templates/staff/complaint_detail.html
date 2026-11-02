@@ -99,6 +99,7 @@
             </div>
             <div class="card-body">
                 <form action="{{ url_for('staff.update_progress', complaint_id=complaint.id) }}" method="POST">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                     <div class="form-group">
                         <label class="form-label">Note Description</label>
                         <textarea name="note" rows="3" class="form-control" required placeholder="e.g. Technician dispatched to inspection site; waiting for replacement parts..."></textarea>
@@ -120,6 +121,7 @@
             </div>
             <div class="card-body">
                 <form action="{{ url_for('staff.resolve', complaint_id=complaint.id) }}" method="POST">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                     <div class="form-group">
                         <label class="form-label">Resolution Summary *</label>
                         <textarea name="resolution_note" rows="4" class="form-control" required placeholder="Describe the remediation actions taken, components serviced, and tests performed..."></textarea>

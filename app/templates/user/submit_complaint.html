@@ -245,8 +245,9 @@
                 </div>
 
                 <form action="{{ url_for('user.submit_complaint') }}" method="POST" enctype="multipart/form-data">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                     {% for key, val in form_data.items() %}
-                        {% if key != 'force_submit' %}
+                        {% if key != 'force_submit' and key != 'csrf_token' %}
                             <input type="hidden" name="{{ key }}" value="{{ val }}">
                         {% endif %}
                     {% endfor %}
@@ -266,6 +267,7 @@
     {% endif %}
 
     <form id="civicComplaintForm" action="{{ url_for('user.submit_complaint') }}" method="POST" enctype="multipart/form-data">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
         <input type="hidden" name="latitude" id="geo_latitude" value="{{ form_data.latitude if form_data else '' }}">
         <input type="hidden" name="longitude" id="geo_longitude" value="{{ form_data.longitude if form_data else '' }}">
 
@@ -763,9 +765,13 @@ document.addEventListener('DOMContentLoaded', function() {
             return;
         }
 
+        const csrfToken = document.querySelector('meta[name="csrf-token"]') ? document.querySelector('meta[name="csrf-token"]').getAttribute('content') : '';
         fetch('/api/check-duplicates', {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            headers: { 
+                'Content-Type': 'application/json',
+                'X-CSRFToken': csrfToken
+            },
             body: JSON.stringify({ title: title, description: desc, category: category })
         })
         .then(res => res.json())

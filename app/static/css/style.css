@@ -356,6 +356,10 @@ a:hover {
   gap: 16px;
 }
 
+#sidebar-toggle {
+  display: none;
+}
+
 .page-title {
   font-size: 1.35rem;
   font-weight: 700;

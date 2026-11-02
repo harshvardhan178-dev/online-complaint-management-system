@@ -2,7 +2,7 @@ import os
 import json
 from werkzeug.utils import secure_filename
 from flask import Blueprint, render_template, redirect, url_for, request, flash, session, current_app, jsonify, send_from_directory, g
-from app.models import db, Complaint, Department, Feedback, Notification
+from app.models import db, User, Complaint, Department, Feedback, Notification
 from app.routes.auth import login_required
 from app.services.complaint_service import create_complaint, detect_duplicates, submit_feedback, update_status
 from app.services.notification_service import get_user_notifications, mark_notification_as_read, mark_all_notifications_as_read
@@ -374,10 +374,7 @@ def api_check_duplicates():
 @user_bp.route('/profile', methods=['GET', 'POST'])
 @login_required
 def profile():
-    user = db.session.get(Complaint.submitter.property.mapper.class_, session['user_id'])
-    if not user:
-        from app.models import User
-        user = db.session.get(User, session['user_id'])
+    user = db.session.get(User, session['user_id'])
 
     if request.method == 'POST':
         full_name = request.form.get('full_name', '').strip()

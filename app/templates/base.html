@@ -3,6 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>{% block title %}SmartComplaint{% endblock %} — Enterprise Complaint SaaS</title>
     <!-- Google Fonts: Inter & Plus Jakarta Sans -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -155,7 +156,7 @@
         <div class="main-wrapper">
             <header class="top-navbar">
                 <div class="nav-left">
-                    <button id="sidebar-toggle" class="btn btn-outline btn-sm" style="display: none;" aria-label="Toggle Navigation">
+                    <button id="sidebar-toggle" class="btn btn-outline btn-sm" aria-label="Toggle Navigation">
                         <i class="fa-solid fa-bars"></i>
                     </button>
                     <div>

@@ -172,6 +172,7 @@
                                                 <button type="button" class="modal-close">&times;</button>
                                             </div>
                                             <form action="{{ url_for('admin.assign', complaint_id=c.id) }}" method="POST">
+                                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                                                 <div class="modal-body">
                                                     <div class="form-group">
                                                         <label class="form-label">Department Unit</label>
@@ -216,6 +217,7 @@
                                                 <button type="button" class="modal-close">&times;</button>
                                             </div>
                                             <form action="{{ url_for('admin.change_status', complaint_id=c.id) }}" method="POST">
+                                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                                                 <div class="modal-body">
                                                     <div class="form-group">
                                                         <label class="form-label">Target Status</label>

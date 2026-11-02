@@ -69,6 +69,7 @@
                                         <!-- Toggle Status Form -->
                                         {% if u.id != session.get('user_id') %}
                                             <form action="{{ url_for('admin.toggle_user_status', user_id=u.id) }}" method="POST" style="display: inline;" onsubmit="return confirm('Toggle active status for {{ u.full_name }}?');">
+                                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                                                 <button type="submit" class="btn btn-sm {% if u.is_active %}btn-outline{% else %}btn-success{% endif %}" title="{% if u.is_active %}Deactivate Account{% else %}Activate Account{% endif %}">
                                                     <i class="fa-solid {% if u.is_active %}fa-ban text-danger{% else %}fa-check{% endif %}"></i>
                                                 </button>
@@ -86,6 +87,7 @@
                                                 <button type="button" class="modal-close">&times;</button>
                                             </div>
                                             <form action="{{ url_for('admin.update_user', user_id=u.id) }}" method="POST">
+                                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                                                 <div class="modal-body">
                                                     <div class="form-group">
                                                         <label class="form-label">System Role</label>
@@ -131,6 +133,7 @@
             </div>
             <div class="card-body">
                 <form action="{{ url_for('admin.add_department') }}" method="POST">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                     <div class="form-group">
                         <label class="form-label">Department Name *</label>
                         <input type="text" name="name" class="form-control" required placeholder="e.g. Electrical & Utilities">

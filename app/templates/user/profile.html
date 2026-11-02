@@ -58,6 +58,7 @@
             </div>
             <div class="card-body">
                 <form action="{{ url_for('user.profile') }}" method="POST">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                     <div class="form-group">
                         <label for="full_name" class="form-label">Full Name</label>
                         <input type="text" id="full_name" name="full_name" class="form-control" value="{{ user.full_name }}" required>
@@ -90,6 +91,7 @@
             </div>
             <div class="card-body">
                 <form action="{{ url_for('user.profile') }}" method="POST">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                     <input type="hidden" name="full_name" value="{{ user.full_name }}">
                     <input type="hidden" name="phone" value="{{ user.phone or '' }}">
 

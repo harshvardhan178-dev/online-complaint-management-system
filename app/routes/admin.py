@@ -204,6 +204,8 @@ def export_csv():
     status = request.args.get('status')
     category = request.args.get('category')
     dept_id = request.args.get('department_id', type=int)
+    priority = request.args.get('priority')
+    city = request.args.get('city')
 
     query = Complaint.query
     if status:
@@ -212,11 +214,15 @@ def export_csv():
         query = query.filter_by(category=category)
     if dept_id:
         query = query.filter_by(department_id=dept_id)
+    if priority:
+        query = query.filter_by(priority=priority)
+    if city:
+        query = query.filter_by(city=city)
 
     complaints_list = query.order_by(Complaint.created_at.desc()).all()
     csv_stream = generate_csv_report(complaints_list)
 
-    filename = f"complaints_report_{datetime.utcnow().strftime('%Y%m%d_%H%M%S')}.csv"
+    filename = f"complaints_report_{datetime.now().strftime('%Y%m%d_%H%M%S')}.csv"
     return Response(
         csv_stream.getvalue(),
         mimetype="text/csv",
@@ -228,6 +234,8 @@ def export_pdf():
     status = request.args.get('status')
     category = request.args.get('category')
     dept_id = request.args.get('department_id', type=int)
+    priority = request.args.get('priority')
+    city = request.args.get('city')
 
     query = Complaint.query
     if status:
@@ -236,11 +244,15 @@ def export_pdf():
         query = query.filter_by(category=category)
     if dept_id:
         query = query.filter_by(department_id=dept_id)
+    if priority:
+        query = query.filter_by(priority=priority)
+    if city:
+        query = query.filter_by(city=city)
 
     complaints_list = query.order_by(Complaint.created_at.desc()).all()
     pdf_buffer = generate_pdf_report(complaints_list)
 
-    filename = f"complaints_report_{datetime.utcnow().strftime('%Y%m%d_%H%M%S')}.pdf"
+    filename = f"complaints_report_{datetime.now().strftime('%Y%m%d_%H%M%S')}.pdf"
     return send_file(
         pdf_buffer,
         mimetype="application/pdf",
