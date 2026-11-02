@@ -5,6 +5,7 @@ Flask-Bcrypt>=1.0.1
 Flask-Session>=0.6.0
 Flask-WTF>=1.2.1
 Flask-Mail>=0.9.1
+CacheLib>=0.13.0
 psycopg[binary]>=3.2.0
 PyMySQL>=1.1.0
 python-dotenv>=1.0.0
